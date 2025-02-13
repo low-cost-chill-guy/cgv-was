@@ -6,8 +6,9 @@ on:
       - main 
 
 jobs:
-  sync:
-    runs-on: ubuntu-latest
+  jobs:
+    sync:
+      runs-on: self-hosted
 
     steps:
     - name: Checkout GitHub repository
@@ -19,6 +20,13 @@ jobs:
       run: |
         git config user.name "okhi3945"
         git config user.email "yhoka@naver.com"
+
+
+    - name: Test GitLab connection
+      run: |
+        ping -c 4 myregistry.com
+        curl -v http://myregistry.com:80
+
 
     - name: Add GitLab remote repository
       # 자체 호스팅 GitLab URL 사용
