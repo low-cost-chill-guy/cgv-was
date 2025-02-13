@@ -22,7 +22,7 @@ jobs:
 
     - name: Add GitLab remote repository
       # 자체 호스팅 GitLab URL 사용
-      run: git remote add gitlab http://oauth2:${GITLAB_TOKEN}@myregistry.com/root/lowcostchillguygitlab.git
+      run: git remote add gitlab http://oauth2:${GITLAB_TOKEN}@myregistry.com:80/root/lowcostchillguygitlab.git
       env:
         GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
 
