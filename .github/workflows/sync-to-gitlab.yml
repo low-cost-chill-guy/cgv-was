@@ -6,9 +6,8 @@ on:
       - main 
 
 jobs:
-  jobs:
-    sync:
-      runs-on: self-hosted
+  sync:
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout GitHub repository
@@ -20,17 +19,14 @@ jobs:
       run: |
         git config user.name "okhi3945"
         git config user.email "yhoka@naver.com"
-
-
     - name: Test GitLab connection
       run: |
         ping -c 4 myregistry.com
         curl -v http://myregistry.com:80
 
-
     - name: Add GitLab remote repository
       # 자체 호스팅 GitLab URL 사용
-      run: git remote add gitlab http://oauth2:${GITLAB_TOKEN}@myregistry.com:80/root/lowcostchillguygitlab.git
+      run: git remote add gitlab http://oauth2:${GITLAB_TOKEN}@${GITLAB_REPO_URL}
       env:
         GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
 
