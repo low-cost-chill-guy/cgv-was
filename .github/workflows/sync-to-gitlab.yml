@@ -21,7 +21,6 @@ jobs:
         git config user.email "yhoka@naver.com"
     - name: Test GitLab connection
       run: |
-        ping -c 4 myregistry.com
         curl -v http://myregistry.com:80
 
     - name: Add GitLab remote repository
