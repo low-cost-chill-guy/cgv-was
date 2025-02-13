@@ -21,10 +21,12 @@ jobs:
         git config user.email "yhoka@naver.com"
 
     - name: Add GitLab remote repository
-      # GitLab URL 형식 수정
-      run: git remote add gitlab https://gitlab.com/${{ secrets.GITLAB_USERNAME }}/${{ secrets.GITLAB_REPO_NAME }}.git
-
-    - name: Push to GitLab
+      # 자체 호스팅 GitLab URL 사용
+      run: git remote add gitlab http://oauth2:${GITLAB_TOKEN}@myregistry.com/root/lowcostchillguygitlab.git
       env:
         GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
-      run: git push "https://oauth2:${GITLAB_TOKEN}@gitlab.com/${{ secrets.GITLAB_USERNAME }}/${{ secrets.GITLAB_REPO_NAME }}.git" main
+
+    - name: Push to GitLab
+      run: git push gitlab main
+      env:
+        GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
