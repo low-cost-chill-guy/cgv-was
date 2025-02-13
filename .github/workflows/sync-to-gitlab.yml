@@ -18,6 +18,10 @@ jobs:
         git config user.name "okhi3945"
         git config user.email "yhoka@naver.com"
 
+    # 전체 커밋 기록을 가져오기 위한 명령어 추가
+    - name: Fetch full history
+      run: git fetch --unshallow
+
     - name: Add GitLab remote repository
       run: git remote add gitlab https://oauth2:${{ secrets.GITLAB_TOKEN }}@${{ secrets.GITLAB_REPO_URL }}
 
