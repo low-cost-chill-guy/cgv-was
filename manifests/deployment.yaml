@@ -13,6 +13,8 @@ spec:
       labels:
         app: test
     spec:
+      imagePullSecrets:
+        - name: ecr-registry-secret
       containers:
         - name: test
           image: AKIAUBKFCUCKLICYOOTB.dkr.ecr.ap-northeast-2.amazonaws.com/chillguy/cicdwas:latest
