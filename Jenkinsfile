@@ -13,6 +13,46 @@ pipeline {
         GITHUB_REPO = 'https://github.com/low-cost-chill-guy/cgv-was.git'
     }
    
+    options {
+        disableConcurrentBuilds()
+    }
+    
+    post {
+        always {
+            script {
+                if (currentBuild.result == null) {
+                    currentBuild.result = 'SUCCESS'
+                }
+            }
+        }
+        success {
+            slackSend (
+                channel: '#젠킨스-ci-빌드-결과', 
+                color: 'good',
+                message: """
+                    :white_check_mark: 파이프라인 빌드 성공
+                    Job: ${env.JOB_NAME}
+                    Build Number: ${env.BUILD_NUMBER}
+                    Branch: main
+                    빌드 URL: ${env.BUILD_URL}
+                """.stripIndent()
+            )
+        }
+        failure {
+            slackSend (
+                channel: '#젠킨스-ci-빌드-결과', 
+                color: 'danger',
+                message: """
+                    :x: 파이프라인 빌드 실패
+                    Job: ${env.JOB_NAME}
+                    Build Number: ${env.BUILD_NUMBER}
+                    Branch: main
+                    빌드 URL: ${env.BUILD_URL}
+                """.stripIndent()
+            )
+        }
+    }
+
     stages {
         stage('Checkout') { 
             steps {
