@@ -12,7 +12,7 @@ public class UserController {
 
     @Autowired
     private UserService userService;
-
+    // 테스트 getmapping
     @GetMapping("/hello")
     public String hello(){
         return "hello";
