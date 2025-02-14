@@ -12,7 +12,6 @@ import com.cloudwave.lowcostchillguy.service.UserService;
 @RequestMapping("/user")
 public class UserController {
 
-    // 의존성 주입
     @Autowired
     private UserService userService;
 

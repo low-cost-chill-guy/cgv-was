@@ -1,10 +1,10 @@
-# Build stage
+# gradle, jdk 버전 17 이미지를 이미지 빌더로 사용
 FROM gradle:7.6.1-jdk17-alpine AS builder
 
-# Add build dependencies
+# 빌드할 때 필요한 의존성 추가
 RUN apk add --no-cache curl
 
-# Set gradle user permissions
+# root 유저로 gradle 유저의 권한을 설정
 USER root
 RUN mkdir -p /home/gradle && \
     chown -R gradle:gradle /home/gradle
@@ -12,25 +12,25 @@ RUN mkdir -p /home/gradle && \
 WORKDIR /build
 RUN chown -R gradle:gradle /build
 
-# Switch to gradle user
+# gradle 유저로 바꿔서 구성
 USER gradle
 
-# Copy gradle files for dependency resolution
+# gradle 파일들 복사
 COPY --chown=gradle:gradle build.gradle settings.gradle ./
 COPY --chown=gradle:gradle gradle gradle
 COPY --chown=gradle:gradle gradlew gradlew.bat ./
 
-# Verify gradle wrapper
+# gradlew chmod로 실행권한 추가
 RUN chmod +x gradlew
 RUN ./gradlew --version
 
-# Download dependencies
+# gradlew에 있는 의존성 설치
 RUN ./gradlew dependencies --no-daemon --stacktrace
 
-# Copy source code
+# src 폴더에 있는 소스코드들 복사
 COPY --chown=gradle:gradle src src
 
-# Build application
+# 애플리케이션 빌드
 RUN ./gradlew build --no-daemon --stacktrace
 
 # Runtime stage
