@@ -25,7 +25,7 @@ pipeline {
                 }
             }
         }
-        // 빌드 성공 시 슬랙 전송송
+        // 빌드 성공 시 슬랙 전송
         success {
             slackSend (
                 channel: '#젠킨스-ci-빌드-결과', 
