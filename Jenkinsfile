@@ -28,7 +28,7 @@ pipeline {
         // 빌드 성공 시 슬랙 전송
         success {
             slackSend (
-                channel: '#젠킨스-ci-빌드-결과', 
+                channel: '#ci', 
                 color: 'good',
                 message: """
                     :white_check_mark: 파이프라인 빌드 성공
@@ -42,7 +42,7 @@ pipeline {
         // 빌드 실패 시 슬랙 전송
         failure {
             slackSend (
-                channel: '#젠킨스-ci-빌드-결과', 
+                channel: '#ci', 
                 color: 'danger',
                 message: """
                     :x: 파이프라인 빌드 실패
