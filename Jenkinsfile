@@ -114,7 +114,17 @@ pipeline {
                 script {
                     withCredentials([sshUserPrivateKey(credentialsId: 'github-ssh-key', keyFileVariable: 'SSH_KEY')]) {
                         sh """
-                            # GitOps 리포지토리 클론 (K8s 매니페스트 포함)
+                            # GitHub 호스트 키를 known_hosts에 추가
+                            mkdir -p ~/.ssh
+                            ssh-keyscan github.com >> ~/.ssh/known_hosts
+                            
+                            # SSH_KEY 파일의 권한 설정
+                            chmod 600 "${SSH_KEY}"
+                            
+                            # 환경 변수로 SSH 명령 설정
+                            export GIT_SSH_COMMAND="ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no"
+                            
+                            # GitOps 리포지토리 클론
                             git clone git@github.com:low-cost-chill-guy/k8s-manifests.git
                             cd k8s-manifests/${ENV}
                             
