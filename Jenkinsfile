@@ -123,8 +123,8 @@ pipeline {
                             git clone git@github.com:low-cost-chill-guy/k8s-manifests.git
                             cd k8s-manifests/\${ENV}
                             
-                            # 이미지 태그만 찾아서 업데이트 (들여쓰기 무관)
-                            sed -i '/image: ${REPOSITORY_URI}/{s/:.*/:${IMAGE_TAG}/}' deployment.yaml
+                            # 구분자를 '|'로 변경
+                            sed -i '|image: \${REPOSITORY_URI}|{s|:.*|:${IMAGE_TAG}|}' deployment.yaml
                             
                             git config user.email "jenkins@example.com"
                             git config user.name "Jenkins CI"
