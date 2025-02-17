@@ -124,11 +124,12 @@ pipeline {
                             # 환경 변수로 SSH 명령 설정
                             export GIT_SSH_COMMAND="ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no"
                             
-                            pwd
+                            # 기존 k8s-manifests 디렉토리가 있다면 제거
+                            rm -rf k8s-manifests
                             
                             # GitOps 리포지토리 클론
                             git clone git@github.com:low-cost-chill-guy/k8s-manifests.git
-                            cd /k8s-manifests/${ENV}
+                            cd k8s-manifests/\${ENV}
                             
                             # 배포 파일에서 이미지 태그 업데이트
                             sed -i "s|image: \${REPOSITORY_URI}:latest|image: \${REPOSITORY_URI}:${IMAGE_TAG}|" deployment.yaml
@@ -137,7 +138,7 @@ pipeline {
                             git config user.email "jenkins@example.com"
                             git config user.name "Jenkins CI"
                             git add deployment.yaml
-                            git commit -m "Update ${ENV} environment to image ${IMAGE_TAG}"
+                            git commit -m "Update \${ENV} environment to image ${IMAGE_TAG}"
                             git push origin main
                         """
                     }
