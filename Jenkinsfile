@@ -3,14 +3,21 @@ pipeline {
     
     environment {
         AWS_PROFILE = 'jenkins_profile'
-        AWS_DEFAULT_REGION="ap-northeast-2"
-        IMAGE_REPO_NAME="chillguy/cicdwas"
-        IMAGE_TAG="latest"
+        AWS_DEFAULT_REGION = "ap-northeast-2"
+        GITHUB_REPO = 'https://github.com/low-cost-chill-guy/cgv-was.git'
+        
+        // 브랜치에 따라 환경을 동적으로 결정
+        ENV = "${env.BRANCH_NAME == 'main' ? 'prod' : env.BRANCH_NAME}"
+        
+        // 환경에 따라 ECR 리포지토리 이름 설정
+        IMAGE_REPO_NAME = "${ENV}/lowcostchillguy${ENV}"
+        IMAGE_TAG = "${env.BUILD_NUMBER}"
+        
+        // ECR 리포지토리 URI 가져오기
         REPOSITORY_URI = sh(
             script: "aws ecr describe-repositories --repository-names ${IMAGE_REPO_NAME} --query 'repositories[0].repositoryUri' --output text --profile ${AWS_PROFILE}",
             returnStdout: true
         ).trim()
-        GITHUB_REPO = 'https://github.com/low-cost-chill-guy/cgv-was.git'
     }
    
     options {
@@ -25,7 +32,6 @@ pipeline {
                 }
             }
         }
-        // 빌드 성공 시 슬랙 전송
         success {
             slackSend (
                 channel: '#ci', 
@@ -34,12 +40,12 @@ pipeline {
                     :white_check_mark: 파이프라인 빌드 성공
                     Job: ${env.JOB_NAME}
                     Build Number: ${env.BUILD_NUMBER}
-                    Branch: main
+                    Branch: ${env.BRANCH_NAME}
+                    Environment: ${ENV}
                     빌드 URL: ${env.BUILD_URL}
                 """.stripIndent()
             )
         }
-        // 빌드 실패 시 슬랙 전송
         failure {
             slackSend (
                 channel: '#ci', 
@@ -48,7 +54,8 @@ pipeline {
                     :x: 파이프라인 빌드 실패
                     Job: ${env.JOB_NAME}
                     Build Number: ${env.BUILD_NUMBER}
-                    Branch: main
+                    Branch: ${env.BRANCH_NAME}
+                    Environment: ${ENV}
                     빌드 URL: ${env.BUILD_URL}
                 """.stripIndent()
             )
@@ -58,12 +65,11 @@ pipeline {
     stages {
         stage('Checkout') { 
             steps {
-                checkout scmGit(branches: [[name: '*/main']], 
+                checkout scmGit(branches: [[name: "*/${env.BRANCH_NAME}"]], 
                     userRemoteConfigs: [[url: "${GITHUB_REPO}"]])
             }
         }
 
-        // ecr에 로그인
         stage('Logging into AWS ECR') { 
             steps {
                 script {
@@ -80,7 +86,6 @@ pipeline {
             }
         }
         
-        // 도커를 사용하여 이미지로 생성성
         stage('Building image') {
             steps {
                 script {
@@ -89,124 +94,43 @@ pipeline {
             }
         }
         
-        // ecr에 이미지 푸쉬쉬
         stage('Pushing to ECR') {
             steps {
                 script {
                     sh """
                         docker tag ${IMAGE_REPO_NAME}:${IMAGE_TAG} ${REPOSITORY_URI}:${IMAGE_TAG}
                         docker push ${REPOSITORY_URI}:${IMAGE_TAG}
+                        
+                        # 해당 환경에 대해 latest 태그도 적용
+                        docker tag ${IMAGE_REPO_NAME}:${IMAGE_TAG} ${REPOSITORY_URI}:latest
+                        docker push ${REPOSITORY_URI}:latest
                     """
+                }
+            }
+        }
+        
+        stage('Update Kubernetes Manifests') {
+            steps {
+                script {
+                    withCredentials([sshUserPrivateKey(credentialsId: 'github-ssh-key', keyFileVariable: 'SSH_KEY')]) {
+                        sh """
+                            # GitOps 리포지토리 클론 (K8s 매니페스트 포함)
+                            git clone git@github.com:low-cost-chill-guy/k8s-manifests.git
+                            cd k8s-manifests/${ENV}
+                            
+                            # 배포 파일에서 이미지 태그 업데이트
+                            sed -i 's|image: ${REPOSITORY_URI}:.*|image: ${REPOSITORY_URI}:${IMAGE_TAG}|' deployment.yaml
+                            
+                            # 변경사항 커밋 및 푸시
+                            git config user.email "jenkins@example.com"
+                            git config user.name "Jenkins CI"
+                            git add deployment.yaml
+                            git commit -m "Update ${ENV} environment to image ${IMAGE_TAG}"
+                            git push origin main
+                        """
+                    }
                 }
             }
         }
     }
 }
-
-
-
-// pipeline { 
-//    agent any
-   
-//    environment {
-//        AWS_PROFILE = 'jenkins_profile'
-//        AWS_DEFAULT_REGION="ap-northeast-2"
-//        IMAGE_REPO_NAME="chillguy/cicdwas"
-//        IMAGE_TAG="latest"
-//        REPOSITORY_URI = sh(
-//            script: "aws ecr describe-repositories --repository-names ${IMAGE_REPO_NAME} --query 'repositories[0].repositoryUri' --output text --profile ${AWS_PROFILE}",
-//            returnStdout: true
-//        ).trim()
-//        GITLAB_REPO = 'https://gitlab.com/yhoka/yhgitlab.git'
-//        GITLAB_CREDENTIALS = credentials('gitlabjenkinsauth')  // 이 한 줄로 통합
-//    }
-  
-//    options {
-//        disableConcurrentBuilds()
-//    }
-   
-//    post {
-//        always {
-//            script {
-//                if (currentBuild.result == null) {
-//                    currentBuild.result = 'SUCCESS'
-//                }
-//            }
-//        }
-//        success {
-//            slackSend (
-//                channel: '#젠킨스-ci-빌드-결과', 
-//                color: 'good',
-//                message: """
-//                    :white_check_mark: 파이프라인 빌드 성공
-//                    Job: ${env.JOB_NAME}
-//                    Build Number: ${env.BUILD_NUMBER}
-//                    Branch: main
-//                    빌드 URL: ${env.BUILD_URL}
-//                """.stripIndent()
-//            )
-//        }
-//        failure {
-//            slackSend (
-//                channel: '#젠킨스-ci-빌드-결과', 
-//                color: 'danger',
-//                message: """
-//                    :x: 파이프라인 빌드 실패
-//                    Job: ${env.JOB_NAME}
-//                    Build Number: ${env.BUILD_NUMBER}
-//                    Branch: main
-//                    빌드 URL: ${env.BUILD_URL}
-//                """.stripIndent()
-//            )
-//        }
-//    }
-
-//    stages {
-//        stage('Checkout from GitLab') { 
-//            steps {
-//                checkout([$class: 'GitSCM',
-//                    branches: [[name: '*/main']],
-//                    userRemoteConfigs: [[
-//                        url: "${GITLAB_REPO}",
-//                        credentialsId: "${GITLAB_CREDENTIALS}"  // 환경 변수 참조로 변경
-//                    ]]
-//                ])
-//            }
-//        }
-
-//        stage('Logging into AWS ECR') { 
-//            steps {
-//                script {
-//                    sh """
-//                        aws ecr get-login-password --region ${AWS_DEFAULT_REGION} --profile ${AWS_PROFILE} | \
-//                        docker login --username AWS --password-stdin \$(aws ecr describe-repositories \
-//                        --repository-names ${IMAGE_REPO_NAME} \
-//                        --query 'repositories[0].repositoryUri' \
-//                        --output text \
-//                        --profile ${AWS_PROFILE} \
-//                        | cut -d'/' -f1)
-//                    """
-//                }
-//            }
-//        }
-       
-//        stage('Building image') {
-//            steps {
-//                script {
-//                    dockerImage = docker.build("${IMAGE_REPO_NAME}:${IMAGE_TAG}")
-//                }
-//            }
-//        }
-       
-//        stage('Pushing to ECR') {
-//            steps {
-//                script {
-//                    sh """
-//                        docker tag ${IMAGE_REPO_NAME}:${IMAGE_TAG} ${REPOSITORY_URI}:${IMAGE_TAG}
-//                        docker push ${REPOSITORY_URI}:${IMAGE_TAG}
-//                    """
-//                }
-//            }
-//        }
-//    }
-// }
