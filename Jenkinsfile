@@ -113,7 +113,7 @@ pipeline {
             steps {
                 script {
                     withCredentials([sshUserPrivateKey(credentialsId: 'github-ssh-key', keyFileVariable: 'SSH_KEY')]) {
-                        sh """
+                        bash """
                             mkdir -p ~/.ssh
                             ssh-keyscan github.com >> ~/.ssh/known_hosts
                             chmod 600 "${SSH_KEY}"
