@@ -113,7 +113,7 @@ pipeline {
             steps {
                 script {
                     withCredentials([sshUserPrivateKey(credentialsId: 'github-ssh-key', keyFileVariable: 'SSH_KEY')]) {
-                        bash """
+                        sh """
                             mkdir -p ~/.ssh
                             ssh-keyscan github.com >> ~/.ssh/known_hosts
                             chmod 600 "${SSH_KEY}"
@@ -124,7 +124,7 @@ pipeline {
                             cd k8s-manifests/\${ENV}
                             
                             # 이미지 태그 업데이트
-                            sed -i "s/image: .*:\\(.*\\)/image: ${REPOSITORY_URI}:${IMAGE_TAG}/" deployment.yaml
+                            sed -i "s|image: .*:\\(.*\\)|image: ${REPOSITORY_URI}:${IMAGE_TAG}|" deployment.yaml
                             
                             # 변경사항 확인
                             git diff
