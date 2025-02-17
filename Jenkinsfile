@@ -114,27 +114,18 @@ pipeline {
                 script {
                     withCredentials([sshUserPrivateKey(credentialsId: 'github-ssh-key', keyFileVariable: 'SSH_KEY')]) {
                         sh """
-                            # GitHub 호스트 키를 known_hosts에 추가
                             mkdir -p ~/.ssh
                             ssh-keyscan github.com >> ~/.ssh/known_hosts
-                            
-                            # SSH_KEY 파일의 권한 설정
                             chmod 600 "${SSH_KEY}"
-                            
-                            # 환경 변수로 SSH 명령 설정
                             export GIT_SSH_COMMAND="ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no"
                             
-                            # 기존 k8s-manifests 디렉토리가 있다면 제거
                             rm -rf k8s-manifests
-                            
-                            # GitOps 리포지토리 클론
                             git clone git@github.com:low-cost-chill-guy/k8s-manifests.git
                             cd k8s-manifests/\${ENV}
                             
-                            # 배포 파일에서 이미지 태그 업데이트
-                            sed -i "s|image: \${REPOSITORY_URI}:latest|image: \${REPOSITORY_URI}:${IMAGE_TAG}|" deployment.yaml
+                            # 이미지 태그만 찾아서 업데이트 (들여쓰기 무관)
+                            sed -i '/image: ${REPOSITORY_URI}/{s/:.*/:${IMAGE_TAG}/}' deployment.yaml
                             
-                            # 변경사항 커밋 및 푸시
                             git config user.email "jenkins@example.com"
                             git config user.name "Jenkins CI"
                             git add deployment.yaml
