@@ -129,7 +129,7 @@ pipeline {
                             cd k8s-manifests/${ENV}
                             
                             # 배포 파일에서 이미지 태그 업데이트
-                            sed -i 's|image: ${REPOSITORY_URI}:.*|image: ${REPOSITORY_URI}:${IMAGE_TAG}|' deployment.yaml
+                            sed -i "s|image: \${REPOSITORY_URI}:latest|image: \${REPOSITORY_URI}:${IMAGE_TAG}|" deployment.yaml
                             
                             # 변경사항 커밋 및 푸시
                             git config user.email "jenkins@example.com"
