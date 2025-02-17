@@ -128,7 +128,7 @@ pipeline {
                             
                             # GitOps 리포지토리 클론
                             git clone git@github.com:low-cost-chill-guy/k8s-manifests.git
-                            cd k8s-manifests/${ENV}
+                            cd /k8s-manifests/${ENV}
                             
                             # 배포 파일에서 이미지 태그 업데이트
                             sed -i "s|image: \${REPOSITORY_URI}:latest|image: \${REPOSITORY_URI}:${IMAGE_TAG}|" deployment.yaml
