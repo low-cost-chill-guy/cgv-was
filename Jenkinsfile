@@ -124,10 +124,7 @@ pipeline {
                             # 환경 변수로 SSH 명령 설정
                             export GIT_SSH_COMMAND="ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no"
                             
-                            # 디렉토리가 이미 존재하면 삭제
-                            if [ -d "k8s-manifests" ]; then
-                                rm -rf k8s-manifests
-                            fi
+                            pwd
                             
                             # GitOps 리포지토리 클론
                             git clone git@github.com:low-cost-chill-guy/k8s-manifests.git
