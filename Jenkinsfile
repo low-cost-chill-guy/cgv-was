@@ -123,12 +123,10 @@ pipeline {
                             git clone git@github.com:low-cost-chill-guy/k8s-manifests.git
                             cd k8s-manifests/\${ENV}
                             
-                            # 실제 레포지토리 URI로 치환하고 이미지 태그 업데이트
-                            ESCAPED_REPO_URI=\$(echo "${REPOSITORY_URI}" | sed 's/[\/&]/\\&/g')
-                            sed -i -E "s|(^.*image: )\${REPOSITORY_URI}:.*|\1${ESCAPED_REPO_URI}:${IMAGE_TAG}|" deployment.yaml
+                            # 이미지 태그 업데이트
+                            sed -i "s/image: .*:\\(.*\\)/image: ${REPOSITORY_URI}:${IMAGE_TAG}/" deployment.yaml
                             
                             # 변경사항 확인
-                            git status
                             git diff
                             
                             git config user.email "jenkins@example.com"
