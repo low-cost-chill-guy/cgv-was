@@ -17,6 +17,6 @@ spec:
         - name: ecr-registry-secret
       containers:
         - name: test
-          image: 277707137172.dkr.ecr.ap-northeast-2.amazonaws.com/chillguy/cicdwas:latest
+          image: <image uri>
           ports:
             - containerPort: 8080
