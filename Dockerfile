@@ -1,13 +1,16 @@
-# gradle, jdk 버전 17 이미지를 이미지 빌더로 사용
+# gradle, jdk 버전 17 이미지를 이미지 빌더로 사용 
 FROM gradle:7.6.1-jdk17-alpine AS builder
 
-# Alpine Linux의 패키지 매니저를 사용하여 curl을 설치
-RUN apk add --no-cache curl
+# Alpine Linux의 패키지 매니저를 사용하여 curl과 sudo를 설치
+RUN apk add --no-cache curl sudo
 
 # root 권한으로 gradle 사용자의 홈 디렉토리를 생성하고 권한을 설정
 USER root
 RUN mkdir -p /home/gradle && \
     chown -R gradle:gradle /home/gradle
+
+# gradle 사용자에게 sudo 권한 부여
+RUN echo "gradle ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
 # 작업 디렉토리를 /build로 설정하고 gradle 사용자에게 권한을 부여
 WORKDIR /build
@@ -41,14 +44,13 @@ COPY --chown=gradle:gradle src src
 # 설정 파일을 위한 빌드 인자 설정 (기본값은 비어있는 값)
 ARG CONFIG_FILE_CONTENT=""
 
-# 설정 파일 내용이 전달되었다면 이를 파일로 생성
+# 설정 파일 내용이 전달되었다면 이를 파일로 생성 (sudo 사용)
 RUN if [ ! -z "$CONFIG_FILE_CONTENT" ]; then \
-    echo "$CONFIG_FILE_CONTENT" > src/main/resources/application-local.yaml; \
+    sudo echo "$CONFIG_FILE_CONTENT" > src/main/resources/application-local.yaml; \
     fi
 
 # 애플리케이션 빌드
-RUN ./gradlew build --no-daemon --stacktrace
-
+RUN ./gradlew build --no-daemon --stacktrace 
 
 # 런타임 스테이지 => ecr의 스캔은 런타임 스캔해줌, 소나큐브는 소스코드 스캔
 FROM eclipse-temurin:17-jre-alpine
