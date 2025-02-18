@@ -65,15 +65,19 @@ pipeline {
             }
         }
         stage('Prepare local File') {
-            steps {
-                script {
-                    withCredentials([file(credentialsId: 'application-local-yaml', variable: 'LOC_FILE')]) {
-                        sh "cp ${LOC_FILE} src/main/resources/application-local.yaml"
-                    }
-                    sh 'cat ./member/.env'
-                }
+    steps {
+        script {
+            withCredentials([file(credentialsId: 'application-local-yaml', variable: 'LOC_FILE')]) {
+                // 디렉토리 생성 후 권한 부여 (디렉토리가 없다면)
+                sh """
+                    mkdir -p src/main/resources
+                    chmod -R 755 src/main/resources
+                    cp ${LOC_FILE} src/main/resources/application-local.yaml
+                """
             }
         }
+    }
+}
 
         stage('Logging into AWS ECR') { 
             steps {
