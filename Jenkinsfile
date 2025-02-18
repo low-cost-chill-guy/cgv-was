@@ -1,4 +1,4 @@
-pipeline {
+pipeline { 
     agent any
     
     environment {
@@ -18,77 +18,74 @@ pipeline {
         disableConcurrentBuilds()
     }
     
+    post {
+        always {
+            script {
+                if (currentBuild.result == null) {
+                    currentBuild.result = 'SUCCESS'
+                }
+            }
+        }
+        success {
+            slackSend (
+                channel: '#ci', 
+                color: 'good',
+                message: """
+                    :white_check_mark: 파이프라인 빌드 성공
+                    Job: ${env.JOB_NAME}
+                    Build Number: ${env.BUILD_NUMBER}
+                    Branch: ${env.BRANCH_NAME}
+                    Environment: ${ENV}
+                    빌드 URL: ${env.BUILD_URL}
+                """.stripIndent()
+            )
+        }
+        failure {
+            slackSend (
+                channel: '#ci', 
+                color: 'danger',
+                message: """
+                    :x: 파이프라인 빌드 실패
+                    Job: ${env.JOB_NAME}
+                    Build Number: ${env.BUILD_NUMBER}
+                    Branch: ${env.BRANCH_NAME}
+                    Environment: ${ENV}
+                    빌드 URL: ${env.BUILD_URL}
+                """.stripIndent()
+            )
+        }
+    }
+
     stages {
-        stage('Clean Workspace') {
+        stage('Checkout') { 
             steps {
-                script {
-                    cleanWs()
-                    sh 'rm -rf .git'
-                }
+                checkout scmGit(branches: [[name: "*/${env.BRANCH_NAME}"]], 
+                    userRemoteConfigs: [[url: "${GITHUB_REPO}"]])
             }
         }
 
-        stage('Checkout') {
+        stage('Setup Configuration') {
             steps {
                 script {
-                    checkout([$class: 'GitSCM',
-                        branches: [[name: "*/${env.BRANCH_NAME}"]],
-                        extensions: [[$class: 'CleanBeforeCheckout']],
-                        userRemoteConfigs: [[url: "${GITHUB_REPO}"]]
-                    ])
+                    // 설정 파일 디렉토리 생성
+                    sh "mkdir -p src/main/resources"
+                    
+                    // Jenkins Credentials에서 설정 파일 내용 가져오기
+                    withCredentials([file(credentialsId: 'application-local-yaml', variable: 'CONFIG_FILE')]) {
+                        sh """
+                            cp \$CONFIG_FILE src/main/resources/application-local.yaml
+                            
+                            if [ -f "src/main/resources/application-local.yaml" ]; then
+                                echo "Configuration file has been copied successfully"
+                            else
+                                echo "Failed to copy configuration file"
+                                exit 1
+                            fi
+                        """
+                    }
                 }
             }
         }
-        
-        // stage('Setup Gradle') {
-        //     steps {
-        //         script {
-        //             sh 'chmod +x ./gradlew'
-                    
-        //             if (fileExists('build.gradle')) {
-        //                 def buildGradleContent = readFile('build.gradle')
-        //                 if (!buildGradleContent.contains('org.owasp.dependencycheck')) {
-        //                     writeFile file: 'build.gradle', text: """
-        //                     ${buildGradleContent}
-
-        //                     plugins {
-        //                         id 'org.owasp.dependencycheck' version '8.2.1'
-        //                     }
-
-        //                     dependencyCheck {
-        //                         formats = ['HTML', 'XML']
-        //                         suppressionFile = 'dependency-check-suppressions.xml'
-        //                         failBuildOnCVSS = 7
-        //                     }
-        //                     """
-        //                 }
-        //             } else {
-        //                 writeFile file: 'build.gradle', text: '''
-        //                 plugins {
-        //                     id 'org.owasp.dependencycheck' version '8.2.1'
-        //                 }
-
-        //                 dependencyCheck {
-        //                     formats = ['HTML', 'XML']
-        //                     suppressionFile = 'dependency-check-suppressions.xml'
-        //                     failBuildOnCVSS = 7
-        //                 }
-        //                 '''
-        //             }
-                    
-        //             if (!fileExists('gradlew')) {
-        //                 sh '''
-        //                     wget https://services.gradle.org/distributions/gradle-7.6.1-bin.zip
-        //                     unzip gradle-7.6.1-bin.zip
-        //                     gradle-7.6.1/bin/gradle wrapper
-        //                     chmod +x gradlew
-        //                     rm -rf gradle-7.6.1
-        //                     rm gradle-7.6.1-bin.zip
-        //                 '''
-        //             }
-        //         }
-        //     }
-        // }
 
         stage('Logging into AWS ECR') { 
             steps {
@@ -115,6 +112,7 @@ pipeline {
                     WORKDIR /app
 
                     COPY build/libs/*.jar app.jar
+                    COPY src/main/resources/application-local.yaml /app/src/main/resources/
 
                     EXPOSE 8080
 
@@ -167,47 +165,6 @@ pipeline {
                     }
                 }
             }
-        }
-    }
-    
-    post {
-        always {
-            script {
-                if (currentBuild.result == null) {
-                    currentBuild.result = 'SUCCESS'
-                }
-                
-                sh 'docker system prune -f || true'
-                cleanWs()
-            }
-        }
-        success {
-            slackSend (
-                channel: '#ci', 
-                color: 'good',
-                message: """
-                    :white_check_mark: 파이프라인 빌드 성공
-                    Job: ${env.JOB_NAME}
-                    Build Number: ${env.BUILD_NUMBER}
-                    Branch: ${env.BRANCH_NAME}
-                    Environment: ${ENV}
-                    빌드 URL: ${env.BUILD_URL}
-                """.stripIndent()
-            )
-        }
-        failure {
-            slackSend (
-                channel: '#ci', 
-                color: 'danger',
-                message: """
-                    :x: 파이프라인 빌드 실패
-                    Job: ${env.JOB_NAME}
-                    Build Number: ${env.BUILD_NUMBER}
-                    Branch: ${env.BRANCH_NAME}
-                    Environment: ${ENV}
-                    빌드 URL: ${env.BUILD_URL}
-                """.stripIndent()
-            )
         }
     }
 }
