@@ -240,6 +240,7 @@ pipeline {
             }
         }
         
+        // main 환경은 argocd로 배포
         stage('Update Kubernetes Manifests') {
             steps {
                 script {
