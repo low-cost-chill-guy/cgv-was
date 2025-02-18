@@ -95,7 +95,7 @@ pipeline {
                 }
             }
         }
-        
+
         stage('Dependency Check') {
             steps {
                 script {
@@ -150,7 +150,7 @@ pipeline {
             steps {
                 script {
                     sh """
-                        docker-compose run --rm trivy image \
+                        docker compose run --rm trivy image \
                             --severity HIGH,CRITICAL \
                             --format template \
                             --template '@/contrib/html.tpl' \
