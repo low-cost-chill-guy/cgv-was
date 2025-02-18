@@ -68,7 +68,6 @@ pipeline {
     steps {
         script {
             withCredentials([file(credentialsId: 'application-local-yaml', variable: 'LOC_FILE')]) {
-                // 디렉토리 생성 후 권한 부여 (디렉토리가 없다면)
                 sh """
                     mkdir -p src/main/resources
                     chmod -R 755 src/main/resources
