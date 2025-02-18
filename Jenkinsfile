@@ -124,16 +124,10 @@ pipeline {
             }
         }
         
-        stage('Pushing to ECR') {
+        stage('Building image') {
             steps {
                 script {
-                    sh """
-                        docker tag ${IMAGE_REPO_NAME}:${IMAGE_TAG} ${REPOSITORY_URI}:${IMAGE_TAG}
-                        docker push ${REPOSITORY_URI}:${IMAGE_TAG}
-                        
-                        docker tag ${IMAGE_REPO_NAME}:${IMAGE_TAG} ${REPOSITORY_URI}:latest
-                        docker push ${REPOSITORY_URI}:latest
-                    """
+                    dockerImage = docker.build("${IMAGE_REPO_NAME}:${IMAGE_TAG}")
                 }
             }
         }
