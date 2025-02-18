@@ -68,16 +68,22 @@ pipeline {
             steps {
                 script {
                     withCredentials([file(credentialsId: 'application-local-yaml', variable: 'CONFIG_FILE')]) {
-                        // 설정 파일의 내용을 읽어 환경 변수로 저장
-                        def configContent = sh(script: "cat \$CONFIG_FILE", returnStdout: true).trim()
+                        // 임시 파일에 설정 내용 저장
+                        sh '''
+                            CONFIG_CONTENT=`cat $CONFIG_FILE | base64 -w 0`
+                            echo "$CONFIG_CONTENT" > config_b64.txt
+                        '''
                         
-                        // 내용을 Base64로 인코딩하여 특수 문자 문제 해결
-                        def encodedConfig = sh(script: "cat \$CONFIG_FILE | base64", returnStdout: true).trim()
+                        // 인코딩된 내용을 변수에 저장
+                        def encodedConfig = readFile('config_b64.txt').trim()
                         
-                        // Docker build 수행 - 인코딩된 설정 파일을 빌드 인자로 전달
+                        // 임시 파일 삭제
+                        sh 'rm config_b64.txt'
+                        
+                        // Docker build 실행 - 인코딩된 설정 파일을 빌드 인자로 전달
                         dockerImage = docker.build(
                             "${IMAGE_REPO_NAME}:${IMAGE_TAG}", 
-                            "--build-arg CONFIG_FILE_CONTENT=\"\$(echo ${encodedConfig} | base64 -d)\" ."
+                            "--build-arg CONFIG_FILE_CONTENT=\"${encodedConfig}\" ."
                         )
                     }
                 }

@@ -13,6 +13,10 @@ RUN mkdir -p /home/gradle && \
 WORKDIR /build
 RUN chown -R gradle:gradle /build
 
+# 설정 파일 디렉토리를 미리 생성하고 권한 설정
+RUN mkdir -p /build/src/main/resources && \
+    chown -R gradle:gradle /build/src/main/resources
+
 # 보안을 위해 gradle 유저로 바꿔서 구성
 USER gradle
 
@@ -36,9 +40,6 @@ COPY --chown=gradle:gradle src src
 
 # 설정 파일을 위한 빌드 인자 설정 (기본값은 비어있는 값)
 ARG CONFIG_FILE_CONTENT=""
-
-# 설정 파일 디렉토리 생성
-RUN mkdir -p src/main/resources
 
 # 설정 파일 내용이 전달되었다면 이를 파일로 생성
 RUN if [ ! -z "$CONFIG_FILE_CONTENT" ]; then \
