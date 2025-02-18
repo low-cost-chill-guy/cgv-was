@@ -71,7 +71,7 @@ pipeline {
                     sh "mkdir -p src/main/resources"
                     
                     // Jenkins Credentials에서 설정 파일 내용 가져오기
-                    withCredentials([file(credentialsId: 'application-local-yaml', variable: 'CONFIG_FILE')]) {
+                    withCredentials([file(credentialsId: 'application-local-yaml', variable: 'SECRET_FILE')]) {
                         sh """
                             cp \$CONFIG_FILE src/main/resources/application-local.yaml
                             
