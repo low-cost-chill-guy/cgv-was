@@ -6,7 +6,7 @@ pipeline {
         AWS_DEFAULT_REGION = "ap-northeast-2"
         GITHUB_REPO = 'https://github.com/low-cost-chill-guy/cgv-was.git'
         ENV = "${env.BRANCH_NAME == 'main' ? 'prod' : env.BRANCH_NAME}"
-        IMAGE_REPO_NAME = "${ENV}/lowcostchillguy${ENV}"
+        IMAGE_REPO_NAME = "chillguy/wastest"
         IMAGE_TAG = "${env.BUILD_NUMBER}"
         REPOSITORY_URI = sh(
             script: "aws ecr describe-repositories --repository-names ${IMAGE_REPO_NAME} --query 'repositories[0].repositoryUri' --output text --profile ${AWS_PROFILE}",
@@ -67,7 +67,7 @@ pipeline {
         stage('Prepare local File') {
             steps {
                 script {
-                    writeFile file: 'src/main/resources', text: "${LOC_FILE}"
+                    writeFile file: 'src/main/resources/application-local.yaml', text: "${LOC_FILE}"
                     sh 'cat ./member/.env'
                 }
             }
