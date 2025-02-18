@@ -67,13 +67,18 @@ pipeline {
         stage('Setup Configuration') {
             steps {
                 script {
-                    // 설정 파일 디렉토리 생성
-                    sh "mkdir -p src/main/resources"
+                    // 설정 파일 디렉토리 생성 및 권한 설정
+                    sh "mkdir -p src/main/resources && chmod 777 src/main/resources"
                     
                     // Jenkins Credentials에서 설정 파일 내용 가져오기
                     withCredentials([file(credentialsId: 'application-local-yaml', variable: 'CONFIG_FILE')]) {
                         sh """
-                            cp \$CONFIG_FILE src/main/resources/application-local.yaml
+                            # 임시 디렉토리를 사용하여 파일을 복사
+                            TEMP_DIR=\$(mktemp -d)
+                            cp \$CONFIG_FILE \$TEMP_DIR/application-local.yaml
+                            chmod 644 \$TEMP_DIR/application-local.yaml
+                            cp \$TEMP_DIR/application-local.yaml src/main/resources/
+                            rm -rf \$TEMP_DIR
                             
                             if [ -f "src/main/resources/application-local.yaml" ]; then
                                 echo "Configuration file has been copied successfully"
