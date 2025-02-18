@@ -100,7 +100,7 @@ pipeline {
             steps {
                 script {
                     sh '''
-                        docker-compose run --rm dependency-check
+                        docker compose run --rm dependency-check
                         mkdir -p reports/dependency-check
                         mv dependency-check-report.html reports/dependency-check/
                         mv dependency-check-report.json reports/dependency-check/
