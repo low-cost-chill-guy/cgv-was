@@ -75,6 +75,7 @@ pipeline {
                     cp ${LOC_FILE} src/main/resources/application-local.yaml
                 """
             }
+            sh 'cat src/main/resources/application-local.yaml'
         }
     }
 }
