@@ -67,8 +67,8 @@ pipeline {
         stage('Prepare local File') {
             steps {
                 script {
-                    withCredentials([string(credentialsId: 'application-local-yaml', variable: 'LOC_FILE')]) {
-                        writeFile file: 'src/main/resources/application-local.yaml', text: LOC_FILE
+                    withCredentials([file(credentialsId: 'application-local-yaml', variable: 'LOC_FILE')]) {
+                        sh "cp ${LOC_FILE} src/main/resources/application-local.yaml"
                     }
                     sh 'cat ./member/.env'
                 }
