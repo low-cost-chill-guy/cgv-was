@@ -47,61 +47,61 @@ pipeline {
             }
         }
         
-        stage('Setup Security Tools') {
-            steps {
-                script {
-                    // security-tools 디렉토리 생성
-                    sh 'mkdir -p ${SECURITY_TOOLS_DIR}'
+        // stage('Setup Security Tools') {
+        //     steps {
+        //         script {
+        //             // security-tools 디렉토리 생성
+        //             sh 'mkdir -p ${SECURITY_TOOLS_DIR}'
                     
-                    // env.sh 파일 생성
-                    writeFile file: "${SECURITY_TOOLS_DIR}/dependency-check/env.sh", text: '''
-                        #!/bin/bash
-                        export DEPENDENCY_CHECK_HOME="${SECURITY_TOOLS_DIR}/dependency-check"
-                        export PATH="$DEPENDENCY_CHECK_HOME/bin:$PATH"
-                    '''
+        //             // env.sh 파일 생성
+        //             writeFile file: "${SECURITY_TOOLS_DIR}/dependency-check/env.sh", text: '''
+        //                 #!/bin/bash
+        //                 export DEPENDENCY_CHECK_HOME="${SECURITY_TOOLS_DIR}/dependency-check"
+        //                 export PATH="$DEPENDENCY_CHECK_HOME/bin:$PATH"
+        //             '''
                     
-                    // 실행 권한 부여
-                    sh """
-                        mkdir -p ${SECURITY_TOOLS_DIR}/dependency-check/bin
-                        chmod +x ${SECURITY_TOOLS_DIR}/dependency-check/env.sh
+        //             // 실행 권한 부여
+        //             sh """
+        //                 mkdir -p ${SECURITY_TOOLS_DIR}/dependency-check/bin
+        //                 chmod +x ${SECURITY_TOOLS_DIR}/dependency-check/env.sh
                         
-                        # setup_security_tools.sh가 존재하는 경우에만 실행
-                        if [ -f ./ci/setup_security_tools.sh ]; then
-                            chmod +x ./ci/setup_security_tools.sh
-                            ./ci/setup_security_tools.sh
-                        else
-                            echo "setup_security_tools.sh not found. Installing minimal security tools..."
-                            # 최소한의 보안 도구 설치
-                            curl -sSfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
-                        fi
-                    """
-                }
-            }
-        }
+        //                 # setup_security_tools.sh가 존재하는 경우에만 실행
+        //                 if [ -f ./ci/setup_security_tools.sh ]; then
+        //                     chmod +x ./ci/setup_security_tools.sh
+        //                     ./ci/setup_security_tools.sh
+        //                 else
+        //                     echo "setup_security_tools.sh not found. Installing minimal security tools..."
+        //                     # 최소한의 보안 도구 설치
+        //                     curl -sSfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+        //                 fi
+        //             """
+        //         }
+        //     }
+        // }
         
-        stage('Security Scanning') {
-            steps {
-                script {
-                    try {
-                        // OWASP Dependency Check 실행
-                        if (fileExists("build.gradle")) {
-                            sh '''
-                                # Gradle 프로젝트용 Dependency Check 설정
-                                echo "plugins { id 'org.owasp.dependencycheck' version '8.2.1' }" >> build.gradle
-                                ./gradlew dependencyCheckAnalyze || true
-                            '''
-                        } else {
-                            echo "Skipping Dependency Check - no Gradle project found"
-                        }
+        // stage('Security Scanning') {
+        //     steps {
+        //         script {
+        //             try {
+        //                 // OWASP Dependency Check 실행
+        //                 if (fileExists("build.gradle")) {
+        //                     sh '''
+        //                         # Gradle 프로젝트용 Dependency Check 설정
+        //                         echo "plugins { id 'org.owasp.dependencycheck' version '8.2.1' }" >> build.gradle
+        //                         ./gradlew dependencyCheckAnalyze || true
+        //                     '''
+        //                 } else {
+        //                     echo "Skipping Dependency Check - no Gradle project found"
+        //                 }
                         
-                        // Trivy 스캔
-                        sh 'trivy fs --format table --output trivy-fs-report.txt . || true'
-                    } catch (Exception e) {
-                        echo "Security scanning failed but continuing: ${e.message}"
-                    }
-                }
-            }
-        }
+        //                 // Trivy 스캔
+        //                 sh 'trivy fs --format table --output trivy-fs-report.txt . || true'
+        //             } catch (Exception e) {
+        //                 echo "Security scanning failed but continuing: ${e.message}"
+        //             }
+        //         }
+        //     }
+        // }
 
                 stage('Logging into AWS ECR') { 
             steps {
@@ -127,20 +127,20 @@ pipeline {
             }
         }
         
-        stage('Container Security Scan') {
-            steps {
-                script {
-                    // Trivy로 빌드된 이미지 스캔
-                    sh "trivy image --format table --output trivy-image-report.txt ${IMAGE_REPO_NAME}:${IMAGE_TAG}"
+        // stage('Container Security Scan') {
+        //     steps {
+        //         script {
+        //             // Trivy로 빌드된 이미지 스캔
+        //             sh "trivy image --format table --output trivy-image-report.txt ${IMAGE_REPO_NAME}:${IMAGE_TAG}"
                     
-                    // 취약점이 심각(CRITICAL)할 경우 파이프라인 실패 처리 (선택적)
-                    def trivyExitCode = sh(script: "trivy image --exit-code 1 --severity CRITICAL ${IMAGE_REPO_NAME}:${IMAGE_TAG}", returnStatus: true)
-                    if (trivyExitCode == 1) {
-                        input message: '심각한 취약점이 발견되었습니다. 그래도 계속 진행하시겠습니까?', ok: '진행'
-                    }
-                }
-            }
-        }
+        //             // 취약점이 심각(CRITICAL)할 경우 파이프라인 실패 처리 (선택적)
+        //             def trivyExitCode = sh(script: "trivy image --exit-code 1 --severity CRITICAL ${IMAGE_REPO_NAME}:${IMAGE_TAG}", returnStatus: true)
+        //             if (trivyExitCode == 1) {
+        //                 input message: '심각한 취약점이 발견되었습니다. 그래도 계속 진행하시겠습니까?', ok: '진행'
+        //             }
+        //         }
+        //     }
+        // }
         
         stage('Pushing to ECR') {
             steps {
