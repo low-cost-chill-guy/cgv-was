@@ -40,55 +40,55 @@ pipeline {
             }
         }
         
-        stage('Setup Gradle') {
-            steps {
-                script {
-                    sh 'chmod +x ./gradlew'
+        // stage('Setup Gradle') {
+        //     steps {
+        //         script {
+        //             sh 'chmod +x ./gradlew'
                     
-                    if (fileExists('build.gradle')) {
-                        def buildGradleContent = readFile('build.gradle')
-                        if (!buildGradleContent.contains('org.owasp.dependencycheck')) {
-                            writeFile file: 'build.gradle', text: """
-                            ${buildGradleContent}
+        //             if (fileExists('build.gradle')) {
+        //                 def buildGradleContent = readFile('build.gradle')
+        //                 if (!buildGradleContent.contains('org.owasp.dependencycheck')) {
+        //                     writeFile file: 'build.gradle', text: """
+        //                     ${buildGradleContent}
 
-                            plugins {
-                                id 'org.owasp.dependencycheck' version '8.2.1'
-                            }
+        //                     plugins {
+        //                         id 'org.owasp.dependencycheck' version '8.2.1'
+        //                     }
 
-                            dependencyCheck {
-                                formats = ['HTML', 'XML']
-                                suppressionFile = 'dependency-check-suppressions.xml'
-                                failBuildOnCVSS = 7
-                            }
-                            """
-                        }
-                    } else {
-                        writeFile file: 'build.gradle', text: '''
-                        plugins {
-                            id 'org.owasp.dependencycheck' version '8.2.1'
-                        }
+        //                     dependencyCheck {
+        //                         formats = ['HTML', 'XML']
+        //                         suppressionFile = 'dependency-check-suppressions.xml'
+        //                         failBuildOnCVSS = 7
+        //                     }
+        //                     """
+        //                 }
+        //             } else {
+        //                 writeFile file: 'build.gradle', text: '''
+        //                 plugins {
+        //                     id 'org.owasp.dependencycheck' version '8.2.1'
+        //                 }
 
-                        dependencyCheck {
-                            formats = ['HTML', 'XML']
-                            suppressionFile = 'dependency-check-suppressions.xml'
-                            failBuildOnCVSS = 7
-                        }
-                        '''
-                    }
+        //                 dependencyCheck {
+        //                     formats = ['HTML', 'XML']
+        //                     suppressionFile = 'dependency-check-suppressions.xml'
+        //                     failBuildOnCVSS = 7
+        //                 }
+        //                 '''
+        //             }
                     
-                    if (!fileExists('gradlew')) {
-                        sh '''
-                            wget https://services.gradle.org/distributions/gradle-7.6.1-bin.zip
-                            unzip gradle-7.6.1-bin.zip
-                            gradle-7.6.1/bin/gradle wrapper
-                            chmod +x gradlew
-                            rm -rf gradle-7.6.1
-                            rm gradle-7.6.1-bin.zip
-                        '''
-                    }
-                }
-            }
-        }
+        //             if (!fileExists('gradlew')) {
+        //                 sh '''
+        //                     wget https://services.gradle.org/distributions/gradle-7.6.1-bin.zip
+        //                     unzip gradle-7.6.1-bin.zip
+        //                     gradle-7.6.1/bin/gradle wrapper
+        //                     chmod +x gradlew
+        //                     rm -rf gradle-7.6.1
+        //                     rm gradle-7.6.1-bin.zip
+        //                 '''
+        //             }
+        //         }
+        //     }
+        // }
 
         stage('Logging into AWS ECR') { 
             steps {
