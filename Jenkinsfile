@@ -106,28 +106,21 @@ pipeline {
         stage('Building image') {
             steps {
                 script {
-                    writeFile file: 'Dockerfile', text: '''
-                    FROM openjdk:17-jdk-slim
-
-                    WORKDIR /app
-
-                    COPY build/libs/*.jar app.jar
-                    COPY src/main/resources/application-local.yaml /app/src/main/resources/
-
-                    EXPOSE 8080
-
-                    ENTRYPOINT ["java", "-jar", "app.jar"]
-                    '''
-                    
                     dockerImage = docker.build("${IMAGE_REPO_NAME}:${IMAGE_TAG}")
                 }
             }
         }
         
-        stage('Building image') {
+        stage('Pushing to ECR') {
             steps {
                 script {
-                    dockerImage = docker.build("${IMAGE_REPO_NAME}:${IMAGE_TAG}")
+                    sh """
+                        docker tag ${IMAGE_REPO_NAME}:${IMAGE_TAG} ${REPOSITORY_URI}:${IMAGE_TAG}
+                        docker push ${REPOSITORY_URI}:${IMAGE_TAG}
+                        
+                        docker tag ${IMAGE_REPO_NAME}:${IMAGE_TAG} ${REPOSITORY_URI}:latest
+                        docker push ${REPOSITORY_URI}:latest
+                    """
                 }
             }
         }
