@@ -64,34 +64,26 @@ pipeline {
             }
         }
 
-        stage('Setup Configuration') {
+        stage('Building image') {
             steps {
                 script {
-                    // 설정 파일 디렉토리 생성 및 권한 설정
-                    sh "mkdir -p src/main/resources && chmod 777 src/main/resources"
-                    
-                    // Jenkins Credentials에서 설정 파일 내용 가져오기
                     withCredentials([file(credentialsId: 'application-local-yaml', variable: 'CONFIG_FILE')]) {
-                        sh """
-                            # 임시 디렉토리를 사용하여 파일을 복사
-                            TEMP_DIR=\$(mktemp -d)
-                            cp \$CONFIG_FILE \$TEMP_DIR/application-local.yaml
-                            chmod 644 \$TEMP_DIR/application-local.yaml
-                            cp \$TEMP_DIR/application-local.yaml src/main/resources/
-                            rm -rf \$TEMP_DIR
-                            
-                            if [ -f "src/main/resources/application-local.yaml" ]; then
-                                echo "Configuration file has been copied successfully"
-                            else
-                                echo "Failed to copy configuration file"
-                                exit 1
-                            fi
-                        """
+                        // 설정 파일의 내용을 읽어 환경 변수로 저장
+                        def configContent = sh(script: "cat \$CONFIG_FILE", returnStdout: true).trim()
+                        
+                        // 내용을 Base64로 인코딩하여 특수 문자 문제 해결
+                        def encodedConfig = sh(script: "cat \$CONFIG_FILE | base64", returnStdout: true).trim()
+                        
+                        // Docker build 수행 - 인코딩된 설정 파일을 빌드 인자로 전달
+                        dockerImage = docker.build(
+                            "${IMAGE_REPO_NAME}:${IMAGE_TAG}", 
+                            "--build-arg CONFIG_FILE_CONTENT=\"\$(echo ${encodedConfig} | base64 -d)\" ."
+                        )
                     }
                 }
             }
         }
-
+        
         stage('Logging into AWS ECR') { 
             steps {
                 script {
@@ -104,14 +96,6 @@ pipeline {
                         --profile ${AWS_PROFILE} \
                         | cut -d'/' -f1)
                     """
-                }
-            }
-        }
-        
-        stage('Building image') {
-            steps {
-                script {
-                    dockerImage = docker.build("${IMAGE_REPO_NAME}:${IMAGE_TAG}")
                 }
             }
         }

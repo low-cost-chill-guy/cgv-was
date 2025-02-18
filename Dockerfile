@@ -34,6 +34,17 @@ RUN ./gradlew dependencies --no-daemon --stacktrace
 # src 폴더에 있는 소스코드들 복사
 COPY --chown=gradle:gradle src src
 
+# 설정 파일을 위한 빌드 인자 설정 (기본값은 비어있는 값)
+ARG CONFIG_FILE_CONTENT=""
+
+# 설정 파일 디렉토리 생성
+RUN mkdir -p src/main/resources
+
+# 설정 파일 내용이 전달되었다면 이를 파일로 생성
+RUN if [ ! -z "$CONFIG_FILE_CONTENT" ]; then \
+    echo "$CONFIG_FILE_CONTENT" > src/main/resources/application-local.yaml; \
+    fi
+
 # 애플리케이션 빌드
 RUN ./gradlew build --no-daemon --stacktrace
 
