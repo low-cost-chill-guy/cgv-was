@@ -1,7 +1,7 @@
-# gradle, jdk 버전 17 이미지를 이미지 빌더로 사용 
+# gradle, jdk 버전 17 이미지를 이미지 빌더로 사용
 FROM gradle:7.6.1-jdk17-alpine AS builder
 
-# Alpine Linux의 패키지 매니저를 사용하여 curl 설치
+# Alpine Linux의 패키지 매니저를 사용하여 curl을 설치
 RUN apk add --no-cache curl
 
 # root 권한으로 gradle 사용자의 홈 디렉토리를 생성하고 권한을 설정
@@ -11,8 +11,10 @@ RUN mkdir -p /home/gradle && \
 
 # 작업 디렉토리를 /build로 설정하고 gradle 사용자에게 권한을 부여
 WORKDIR /build
-RUN mkdir -p /build/src/main/resources && \
-    chown -R gradle:gradle /build
+RUN chown -R gradle:gradle /build
+
+# 보안을 위해 gradle 유저로 바꿔서 구성
+USER gradle
 
 # Gradle 빌드에 필요한 설정 파일들을 복사합니다.
 # --chown 옵션으로 복사된 파일의 소유권을 gradle 사용자로 설정
@@ -22,27 +24,19 @@ COPY --chown=gradle:gradle gradlew gradlew.bat ./
 
 # gradlew chmod로 실행권한 추가
 RUN chmod +x gradlew
+RUN ./gradlew --version
+
+# 프로젝트의 의존성을 미리 다운로드
+# --no-daemon: Gradle 데몬을 사용 X
+# --stacktrace: 오류 발생 시 상세한 스택 트레이스를 출력
+RUN ./gradlew dependencies --no-daemon --stacktrace
 
 # src 폴더에 있는 소스코드들 복사
 COPY --chown=gradle:gradle src src
 
-# 설정 파일을 위한 빌드 인자 설정 (기본값은 비어있는 값)
-ARG CONFIG_FILE_CONTENT=""
-
-# 보안을 위해 gradle 유저로 바꿔서 구성
-USER gradle
-RUN ./gradlew --version
-
-# 프로젝트의 의존성을 미리 다운로드
-RUN ./gradlew dependencies --no-daemon --stacktrace
-
-# 설정 파일 내용이 전달되었다면 이를 파일로 생성
-RUN if [ ! -z "$CONFIG_FILE_CONTENT" ]; then \
-    echo "$CONFIG_FILE_CONTENT" | base64 -d > src/main/resources/application-local.yaml; \
-    fi
-
 # 애플리케이션 빌드
 RUN ./gradlew build --no-daemon --stacktrace
+
 
 # 런타임 스테이지 => ecr의 스캔은 런타임 스캔해줌, 소나큐브는 소스코드 스캔
 FROM eclipse-temurin:17-jre-alpine

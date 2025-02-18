@@ -12,6 +12,7 @@ pipeline {
             script: "aws ecr describe-repositories --repository-names ${IMAGE_REPO_NAME} --query 'repositories[0].repositoryUri' --output text --profile ${AWS_PROFILE}",
             returnStdout: true
         ).trim()
+        LOC_FILE = credentials('application-local-yaml')
     }
    
     options {
@@ -63,33 +64,15 @@ pipeline {
                     userRemoteConfigs: [[url: "${GITHUB_REPO}"]])
             }
         }
-
-        stage('Building image') {
+        stage('Prepare local File') {
             steps {
                 script {
-                    withCredentials([file(credentialsId: 'application-local-yaml', variable: 'CONFIG_FILE')]) {
-                        // 임시 파일에 설정 내용 저장
-                        sh '''
-                            CONFIG_CONTENT=`cat $CONFIG_FILE | base64 -w 0`
-                            echo "$CONFIG_CONTENT" > config_b64.txt
-                        '''
-                        
-                        // 인코딩된 내용을 변수에 저장
-                        def encodedConfig = readFile('config_b64.txt').trim()
-                        
-                        // 임시 파일 삭제
-                        sh 'rm config_b64.txt'
-                        
-                        // Docker build 실행 - 인코딩된 설정 파일을 빌드 인자로 전달
-                        dockerImage = docker.build(
-                            "${IMAGE_REPO_NAME}:${IMAGE_TAG}", 
-                            "--build-arg CONFIG_FILE_CONTENT=\"${encodedConfig}\" ."
-                        )
-                    }
+                    writeFile file: 'src/main/resources', text: "${LOC_FILE}"
+                    sh 'cat ./member/.env'
                 }
             }
         }
-        
+
         stage('Logging into AWS ECR') { 
             steps {
                 script {
@@ -102,6 +85,14 @@ pipeline {
                         --profile ${AWS_PROFILE} \
                         | cut -d'/' -f1)
                     """
+                }
+            }
+        }
+        
+        stage('Building image') {
+            steps {
+                script {
+                    dockerImage = docker.build("${IMAGE_REPO_NAME}:${IMAGE_TAG}")
                 }
             }
         }
