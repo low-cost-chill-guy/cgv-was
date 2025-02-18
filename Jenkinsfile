@@ -94,7 +94,10 @@ pipeline {
                     
                     // OWASP Dependency Check 환경 설정 적용
                     if (fileExists("${SECURITY_TOOLS_DIR}/dependency-check/env.sh")) {
-                        sh "source ${SECURITY_TOOLS_DIR}/dependency-check/env.sh"
+                        sh '''
+                        #!/bin/bash  
+                            "source ${SECURITY_TOOLS_DIR}/dependency-check/env.sh"
+                        '''
                     }
                 }
             }
