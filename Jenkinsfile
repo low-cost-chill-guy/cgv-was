@@ -14,7 +14,7 @@ pipeline {
         ).trim()
         LOC_FILE = credentials('application-local-yaml')
         SONAR_TOKEN = credentials('sonar-token')
-        // NVD_API_KEY = credentials('nvd-api-key')
+        NVD_API_KEY = credentials('nvd-api-key')
     }
 
     options {
@@ -101,21 +101,16 @@ pipeline {
         stage('Dependency Check Analysis') {
             steps {
                 dependencyCheck(
-                    toolName: 'Dependency-Check', // Jenkins 설정에서 정의한 Dependency-Check 설치 이름
-                    reportFilename: 'dependency-check-report.xml', // 보고서 파일 이름 (XML 형식)
-                    scanPath: '.' // 스캔할 경로
+                    scanPath: '.', // 검사할 프로젝트 경로
+                    format: 'HTML', // 보고서 형식
+                    failBuildOnCVSS: 7, // CVSS 7.0 이상일 경우 빌드 실패 (선택 사항)
+                    suppressionFile: 'dependency-suppression.xml', // 취약점 억제 파일 (선택 사항)
+                    nvdApiKey: credentials('nvd-api-key') // NVD API 키 사용
                 )
             }
             post {
                 always {
-                    publishHTML(target: [
-                        allowMissing: false,
-                        alwaysLinkToLastBuild: true,
-                        keepAll: true,
-                        reportDir: 'dependency-check-report',
-                        reportFiles: 'dependency-check-report.html',
-                        reportName: 'Dependency Check Report'
-                    ])
+                    dependencyCheckPublisher() // 결과 게시
                 }
             }
         }
