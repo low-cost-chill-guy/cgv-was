@@ -108,10 +108,10 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                script {
+                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
                     sh """
                         ./gradlew sonar \
-                            -Dsonar.projectKey=${JOB_NAME} \
+                            -Dsonar.projectKey=mulitijenkins/staging \
                             -Dsonar.host.url=http://localhost:9000 \
                             -Dsonar.login=${SONAR_TOKEN}
                     """
