@@ -100,16 +100,27 @@ pipeline {
         stage('Dependency Check') {
             steps {
                 script {
+                    // 이전 리포트 삭제 및 디렉토리 생성
                     sh '''
+                        rm -rf reports/dependency-check
                         mkdir -p reports/dependency-check
-                        docker compose run --rm dependency-check
+                    '''
+                    
+                    // dependency-check 실행
+                    sh '''
+                        docker compose run --rm \
+                            -e JOB_NAME=${JOB_NAME} \
+                            dependency-check
                     '''
                 }
             }
             post {
                 always {
+                    // 로그 출력
+                    sh 'cat reports/dependency-check/dependency-check.log || true'
+                    
                     publishHTML(target: [
-                        allowMissing: false,
+                        allowMissing: true,
                         alwaysLinkToLastBuild: true,
                         keepAll: true,
                         reportDir: 'reports/dependency-check',
