@@ -121,18 +121,20 @@ pipeline {
             }
         }
 
+        stage('Build & Test') {
+            steps {
+                sh './gradlew clean build'
+            }
+        }
+        
         stage('SonarQube Analysis') {
             steps {
                 script {
                     sh """
-                        docker run --rm \
-                            -e SONAR_HOST_URL=http://sonarqube:9000 \
-                            -e SONAR_LOGIN=${SONAR_TOKEN} \
-                            -v "${WORKSPACE}:/usr/src" \
-                            sonarsource/sonar-scanner-cli:latest \
+                        ./gradlew sonar \
                             -Dsonar.projectKey=${JOB_NAME} \
-                            -Dsonar.sources=. \
-                            -Dsonar.java.binaries=build/classes
+                            -Dsonar.host.url=http://localhost:9000 \
+                            -Dsonar.login=${SONAR_TOKEN}
                     """
                 }
             }
