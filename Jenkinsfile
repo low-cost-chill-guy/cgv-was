@@ -16,7 +16,7 @@ pipeline {
         SONAR_TOKEN = credentials('sonar-token')
         NVD_API_KEY = credentials('nvd-api-key')
     }
-    
+
     tools {
         'dependency-check' 'Dependency-Check'
     }
@@ -105,7 +105,6 @@ pipeline {
             steps {
                 sh 'mkdir -p dependency-check-reports'
                 
-                // 데이터 디렉토리를 지정하여 재사용
                 dependencyCheck additionalArguments: '''
                     --scan ./ 
                     --format "HTML" 
