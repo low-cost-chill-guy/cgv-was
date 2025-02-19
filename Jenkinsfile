@@ -102,7 +102,7 @@ pipeline {
                 withCredentials([string(credentialsId: 'nvd-api-key', variable: 'NVD_API_KEY')]) {
                     sh """
                         docker run --rm -e NVD_API_KEY=${NVD_API_KEY} -v \$(pwd):/src -v \$(pwd)/dependency-check-report:/report owasp/dependency-check \
-                        --scan /src --format "HTML" --format "JSON" --out /report --nvd-mirror https://mirror.nvd.nist.gov
+                        --scan /src --format "HTML" --format "JSON" --out /report
                     """
                 }
             }
