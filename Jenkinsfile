@@ -95,12 +95,16 @@ pipeline {
                 }
             }
         }
-
+    
         stage('Dependency Check') {
             steps {
                 script {
                     sh '''
-                        docker compose run --rm dependency-check
+                        mkdir -p dependency-check-cache
+                        docker compose run --rm dependency-check \
+                            --nvd-mirror https://mirror.nvd.nist.gov \
+                            --caches './dependency-check-cache'
+                        
                         mkdir -p reports/dependency-check
                         mv dependency-check-report.html reports/dependency-check/
                         mv dependency-check-report.json reports/dependency-check/
