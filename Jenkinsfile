@@ -100,7 +100,7 @@ pipeline {
                 }
             }
         }
-
+        // dependency 제발
         stage('Dependency Check') {
             steps {
                 sh 'mkdir -p dependency-check-reports'
