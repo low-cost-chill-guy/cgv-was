@@ -13,6 +13,7 @@ pipeline {
             returnStdout: true
         ).trim()
         LOC_FILE = credentials('application-local-yaml')
+        SONAR_TOKEN = credentials('sonar-token')
     }
    
     options {
@@ -65,19 +66,19 @@ pipeline {
             }
         }
         stage('Prepare local File') {
-    steps {
-        script {
-            withCredentials([file(credentialsId: 'application-local-yaml', variable: 'LOC_FILE')]) {
-                sh """
-                    mkdir -p src/main/resources
-                    chmod -R 755 src/main/resources
-                    cp ${LOC_FILE} src/main/resources/application-local.yaml
-                """
+            steps {
+                script {
+                    withCredentials([file(credentialsId: 'application-local-yaml', variable: 'LOC_FILE')]) {
+                        sh """
+                            mkdir -p src/main/resources
+                            chmod -R 755 src/main/resources
+                            cp ${LOC_FILE} src/main/resources/application-local.yaml
+                        """
+                    }
+                    sh 'cat src/main/resources/application-local.yaml'
+                }
             }
-            sh 'cat src/main/resources/application-local.yaml'
         }
-    }
-}
 
         stage('Logging into AWS ECR') { 
             steps {
@@ -94,11 +95,60 @@ pipeline {
                 }
             }
         }
+
         
+
+        
+        stage('Build & Test') {
+            steps {
+                sh './gradlew clean build'
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                script {
+                    sh """
+                        ./gradlew sonar \
+                            -Dsonar.projectKey=${JOB_NAME} \
+                            -Dsonar.host.url=http://localhost:9000 \
+                            -Dsonar.login=${SONAR_TOKEN}
+                    """
+                }
+            }
+        }
+
         stage('Building image') {
             steps {
                 script {
                     dockerImage = docker.build("${IMAGE_REPO_NAME}:${IMAGE_TAG}")
+                }
+            }
+        }
+
+        stage('Trivy Security Scan') {
+            steps {
+                script {
+                    sh """
+                        docker compose run --rm trivy image \
+                            --severity HIGH,CRITICAL \
+                            --format template \
+                            --template '@/contrib/html.tpl' \
+                            --output reports/trivy/scan-report.html \
+                            ${IMAGE_REPO_NAME}:${IMAGE_TAG}
+                    """
+                }
+            }
+            post {
+                always {
+                    publishHTML(target: [
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'reports/trivy',
+                        reportFiles: 'scan-report.html',
+                        reportName: 'Trivy Scan Report'
+                    ])
                 }
             }
         }
