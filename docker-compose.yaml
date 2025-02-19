@@ -30,8 +30,7 @@ services:
     volumes:
       - dependency_data:/usr/share/dependency-check/data
       - ./:/src
-      - ./dependency-check-cache:/dependency-check-cache   # 캐시 디렉토리 추가
-    command: --scan /src --format "HTML" --format "JSON" --out /report --nvd-mirror https://mirror.nvd.nist.gov --caches './dependency-check-cache'
+    command: --scan /src --format "HTML" --format "JSON" --out /report
     working_dir: /src
 
   trivy:
