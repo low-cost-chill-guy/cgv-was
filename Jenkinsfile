@@ -101,11 +101,9 @@ pipeline {
         stage('Dependency Check Analysis') {
             steps {
                 dependencyCheck(
-                    tool: 'Dependency-Check', // Jenkins 설정에서 정의한 Dependency-Check 설치 이름
-                    projectName: 'cgv-was', // 프로젝트 이름
-                    reportFilename: 'dependency-check-report.html', // 보고서 파일 이름
-                    scanPath: '.', // 스캔할 경로
-                    suppressionFilePath: null // suppression 파일 경로 (선택 사항)
+                    toolName: 'Dependency-Check', // Jenkins 설정에서 정의한 Dependency-Check 설치 이름
+                    reportFilename: 'dependency-check-report.xml', // 보고서 파일 이름 (XML 형식)
+                    scanPath: '.' // 스캔할 경로
                 )
             }
             post {
