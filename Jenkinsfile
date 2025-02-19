@@ -14,7 +14,7 @@ pipeline {
         ).trim()
         LOC_FILE = credentials('application-local-yaml')
         SONAR_TOKEN = credentials('sonar-token')
-        NVD_API_KEY = credentials('nvd-api-key')
+        // NVD_API_KEY = credentials('nvd-api-key')
     }
 
     options {
@@ -100,13 +100,13 @@ pipeline {
         // dependency
         stage('Dependency Check Analysis') {
             steps {
-                withCredentials([string(credentialsId: 'nvd-api-key', variable: 'NVD_API_KEY')]) {
-                    sh """
-                        printenv | grep NVD_API_KEY
-                        docker run --rm -v \$(pwd):/src -v \$(pwd)/dependency-check-report:/report owasp/dependency-check \
-                        --scan /src --format "HTML" --format "JSON" --out /report --nvdApiKey \${NVD_API_KEY}	
-                    """
-                }
+                dependencyCheck(
+                    tool: 'Dependency-Check', // Jenkins 설정에서 정의한 Dependency-Check 설치 이름
+                    projectName: 'cgv-was', // 프로젝트 이름
+                    reportFilename: 'dependency-check-report.html', // 보고서 파일 이름
+                    scanPath: '.', // 스캔할 경로
+                    suppressionFilePath: null // suppression 파일 경로 (선택 사항)
+                )
             }
             post {
                 always {
