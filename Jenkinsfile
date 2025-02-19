@@ -101,21 +101,19 @@ pipeline {
         }
 
         // dependency
-        stage('Dependency Check Analysis') {
+        stage('Dependency Check') {
             steps {
-                dependencyCheck(
-                    odcInstallation: 'Dependency-Check', // 툴 이름 지정
-                    scanPath: '.',
-                    format: 'HTML',
-                    failBuildOnCVSS: 7,
-                    suppressionFile: 'dependency-suppression.xml',
-                    nvdApiKey: credentials('nvd-api-key')
-                )
-            }
-            post {
-                always {
-                    dependencyCheckPublisher()
-                }
+                // Dependency Check 실행
+                dependencyCheck additionalArguments: '''
+                    --scan ./ 
+                    --format "HTML" 
+                    --format "XML" 
+                    --out "dependency-check-report"
+                    --suppression suppression.xml
+                ''', odcInstallation: 'Dependency-Check'
+                
+                // 리포트 발행
+                dependencyCheckPublisher pattern: 'dependency-check-report.xml'
             }
         }
 
