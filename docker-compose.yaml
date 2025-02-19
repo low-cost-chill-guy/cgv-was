@@ -33,10 +33,13 @@ services:
       - dependency_data:/usr/share/dependency-check/data
       - ./:/src
     command: >
+      /bin/sh -c "
+      mkdir -p /src/reports/dependency-check &&
+      /usr/share/dependency-check/bin/dependency-check.sh
       --scan /src
-      --format "HTML"
-      --format "JSON"
-      --out /src/reports/dependency-check/
+      --format HTML
+      --format JSON
+      --out /src/reports/dependency-check"
     working_dir: /src
 
   trivy:
