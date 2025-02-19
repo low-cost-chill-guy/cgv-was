@@ -102,7 +102,6 @@ pipeline {
 
         stage('Dependency Check') {
             steps {
-                // 먼저 리포트 디렉토리 생성
                 sh 'mkdir -p dependency-check-reports'
                 
                 dependencyCheck additionalArguments: '''
