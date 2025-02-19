@@ -14,7 +14,6 @@ pipeline {
         ).trim()
         LOC_FILE = credentials('application-local-yaml')
         SONAR_TOKEN = credentials('sonar-token')
-        NVD_API_KEY = credentials('nvd-api-key')
     }
 
     tools {
@@ -100,20 +99,22 @@ pipeline {
                 }
             }
         }
-        // dependency 제발
         stage('Dependency Check') {
             steps {
-                sh 'mkdir -p dependency-check-reports'
-                
-                dependencyCheck additionalArguments: '''
-                    --scan ./ 
-                    --format "HTML" 
-                    --format "XML" 
-                    --out ./dependency-check-reports
-                    --data /var/jenkins_home/dependency-check-data
-                ''', odcInstallation: 'Dependency-Check'
-                
-                dependencyCheckPublisher pattern: 'dependency-check-reports/dependency-check-report.xml'
+                withCredentials([string(credentialsId: 'nvd-api-key', variable: 'NVD_API_KEY')]) {
+                    sh 'mkdir -p dependency-check-reports'
+
+                    dependencyCheck additionalArguments: """
+                        --scan ./
+                        --format "HTML"
+                        --format "XML"
+                        --out ./dependency-check-reports
+                        --data /var/jenkins_home/dependency-check-data
+                        --nvdApiKey ${NVD_API_KEY}
+                    """, odcInstallation: 'Dependency-Check'
+
+                    dependencyCheckPublisher pattern: 'dependency-check-reports/dependency-check-report.xml'
+                }
             }
         }
 
