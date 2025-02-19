@@ -103,14 +103,19 @@ pipeline {
         // dependency
         stage('Dependency Check') {
             steps {
+                // 먼저 리포트 디렉토리 생성
+                sh 'mkdir -p dependency-check-reports'
+                
                 dependencyCheck additionalArguments: '''
                     --scan ./ 
                     --format "HTML" 
                     --format "XML" 
-                    --out "dependency-check-report"
+                    --out ./dependency-check-reports
+                    --project "My Project Name"
                 ''', odcInstallation: 'Dependency-Check'
                 
-                dependencyCheckPublisher pattern: 'dependency-check-report.xml'
+                // 생성된 XML 리포트 발행
+                dependencyCheckPublisher pattern: 'dependency-check-reports/dependency-check-report.xml'
             }
         }
 
@@ -127,7 +132,7 @@ pipeline {
                     sh """
                         ./gradlew sonar \
                             -Dsonar.projectKey=mulitijenkins/staging \
-                            -Dsonar.host.url=http://localhost:9000 \
+                            -Dsonar.host.url=http://khp-sonarqube-1:9000 \
                             -Dsonar.login=${SONAR_TOKEN}
                     """
                 }
