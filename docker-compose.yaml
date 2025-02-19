@@ -32,6 +32,7 @@ services:
     volumes:
       - dependency_data:/usr/share/dependency-check/data
       - ./:/src
+    user: "1000:1000"  # 유저 설정 (필요에 따라 수정)
     entrypoint: ["/bin/sh", "-c"]
     command: >
       "mkdir -p /src/reports/dependency-check &&

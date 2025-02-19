@@ -210,6 +210,7 @@ pipeline {
                             chmod 600 "${SSH_KEY}"
                             export GIT_SSH_COMMAND="ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no"
                             
+
                             rm -rf k8s-manifests
                             git clone git@github.com:low-cost-chill-guy/k8s-manifests.git
                             cd k8s-manifests/\${ENV}
