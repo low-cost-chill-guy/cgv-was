@@ -65,7 +65,6 @@ pipeline {
                     userRemoteConfigs: [[url: "${GITHUB_REPO}"]])
             }
         }
-
         stage('Prepare local File') {
             steps {
                 script {
@@ -96,31 +95,22 @@ pipeline {
                 }
             }
         }
-    
+
         stage('Dependency Check') {
             steps {
                 script {
-                    // 이전 리포트 삭제 및 디렉토리 생성
                     sh '''
-                        rm -rf reports/dependency-check
+                        docker compose run --rm dependency-check
                         mkdir -p reports/dependency-check
-                    '''
-                    
-                    // dependency-check 실행
-                    sh '''
-                        docker compose run --rm \
-                            -e JOB_NAME=${JOB_NAME} \
-                            dependency-check
+                        mv dependency-check-report.html reports/dependency-check/
+                        mv dependency-check-report.json reports/dependency-check/
                     '''
                 }
             }
             post {
                 always {
-                    // 로그 출력
-                    sh 'cat reports/dependency-check/dependency-check.log || true'
-                    
                     publishHTML(target: [
-                        allowMissing: true,
+                        allowMissing: false,
                         alwaysLinkToLastBuild: true,
                         keepAll: true,
                         reportDir: 'reports/dependency-check',
@@ -131,6 +121,7 @@ pipeline {
             }
         }
 
+        
         stage('Build & Test') {
             steps {
                 sh './gradlew clean build'
@@ -162,7 +153,6 @@ pipeline {
             steps {
                 script {
                     sh """
-                        mkdir -p reports/trivy
                         docker compose run --rm trivy image \
                             --severity HIGH,CRITICAL \
                             --format template \
@@ -210,7 +200,6 @@ pipeline {
                             chmod 600 "${SSH_KEY}"
                             export GIT_SSH_COMMAND="ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no"
                             
-
                             rm -rf k8s-manifests
                             git clone git@github.com:low-cost-chill-guy/k8s-manifests.git
                             cd k8s-manifests/\${ENV}
