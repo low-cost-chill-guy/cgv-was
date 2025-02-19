@@ -104,15 +104,15 @@ pipeline {
             steps {
                 sh 'mkdir -p dependency-check-reports'
                 
+                // 데이터 디렉토리를 지정하여 재사용
                 dependencyCheck additionalArguments: '''
                     --scan ./ 
                     --format "HTML" 
                     --format "XML" 
                     --out ./dependency-check-reports
-                    --project "My Project Name"
+                    --data /var/jenkins_home/dependency-check-data
                 ''', odcInstallation: 'Dependency-Check'
                 
-                // 생성된 XML 리포트 발행
                 dependencyCheckPublisher pattern: 'dependency-check-reports/dependency-check-report.xml'
             }
         }
