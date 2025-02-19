@@ -16,6 +16,9 @@ pipeline {
         SONAR_TOKEN = credentials('sonar-token')
         NVD_API_KEY = credentials('nvd-api-key')
     }
+    tools {
+        dependencyCheck 'Dependency-Check'
+    }
 
     options {
         disableConcurrentBuilds()
@@ -101,16 +104,17 @@ pipeline {
         stage('Dependency Check Analysis') {
             steps {
                 dependencyCheck(
-                    scanPath: '.', // 스캔할 경로
-                    format: 'HTML', // 보고서 형식
-                    failBuildOnCVSS: 7, // CVSS 7.0 이상일 경우 빌드 실패
-                    suppressionFile: 'dependency-suppression.xml', // 취약점 억제 파일 (선택 사항)
-                    nvdApiKey: credentials('nvd-api-key') // NVD API 키 사용
+                    odcInstallation: 'Dependency-Check', // 툴 이름 지정
+                    scanPath: '.',
+                    format: 'HTML',
+                    failBuildOnCVSS: 7,
+                    suppressionFile: 'dependency-suppression.xml',
+                    nvdApiKey: credentials('nvd-api-key')
                 )
             }
             post {
                 always {
-                    dependencyCheckPublisher() // 결과 게시
+                    dependencyCheckPublisher()
                 }
             }
         }
