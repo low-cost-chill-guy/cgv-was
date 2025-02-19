@@ -96,7 +96,26 @@ pipeline {
             }
         }
 
-        
+        stage('Dependency Check Analysis') {
+            steps {
+                sh """
+                    docker run --rm -v \$(pwd):/src -v \$(pwd)/dependency-check-report:/report owasp/dependency-check \
+                    --scan /src --format "HTML" --format "JSON" --out /report --nvd-mirror https://mirror.nvd.nist.gov
+                """
+            }
+            post {
+                always {
+                    publishHTML(target: [
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'dependency-check-report',
+                        reportFiles: 'dependency-check-report.html',
+                        reportName: 'Dependency Check Report'
+                    ])
+                }
+            }
+        }
 
         
         stage('Build & Test') {
