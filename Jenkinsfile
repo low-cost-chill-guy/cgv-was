@@ -101,9 +101,9 @@ pipeline {
         stage('Dependency Check Analysis') {
             steps {
                 dependencyCheck(
-                    scanPath: '.', // 검사할 프로젝트 경로
+                    scanPath: '.', // 스캔할 경로
                     format: 'HTML', // 보고서 형식
-                    failBuildOnCVSS: 7, // CVSS 7.0 이상일 경우 빌드 실패 (선택 사항)
+                    failBuildOnCVSS: 7, // CVSS 7.0 이상일 경우 빌드 실패
                     suppressionFile: 'dependency-suppression.xml', // 취약점 억제 파일 (선택 사항)
                     nvdApiKey: credentials('nvd-api-key') // NVD API 키 사용
                 )
