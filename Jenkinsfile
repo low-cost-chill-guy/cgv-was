@@ -121,12 +121,13 @@ pipeline {
             }
         }
 
+        // build
         stage('Build & Test') {
             steps {
                 sh './gradlew clean build'
             }
         }
-        
+
         stage('SonarQube Analysis') {
             steps {
                 script {
