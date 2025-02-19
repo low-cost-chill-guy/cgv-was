@@ -65,6 +65,7 @@ pipeline {
                     userRemoteConfigs: [[url: "${GITHUB_REPO}"]])
             }
         }
+
         stage('Prepare local File') {
             steps {
                 script {
@@ -100,14 +101,8 @@ pipeline {
             steps {
                 script {
                     sh '''
-                        mkdir -p dependency-check-cache
-                        docker compose run --rm dependency-check \
-                            --nvd-mirror https://mirror.nvd.nist.gov \
-                            --caches './dependency-check-cache'
-                        
                         mkdir -p reports/dependency-check
-                        mv dependency-check-report.html reports/dependency-check/
-                        mv dependency-check-report.json reports/dependency-check/
+                        docker compose run --rm dependency-check
                     '''
                 }
             }
@@ -125,7 +120,6 @@ pipeline {
             }
         }
 
-        // build
         stage('Build & Test') {
             steps {
                 sh './gradlew clean build'
@@ -157,6 +151,7 @@ pipeline {
             steps {
                 script {
                     sh """
+                        mkdir -p reports/trivy
                         docker compose run --rm trivy image \
                             --severity HIGH,CRITICAL \
                             --format template \

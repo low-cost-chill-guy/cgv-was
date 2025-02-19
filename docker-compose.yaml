@@ -1,5 +1,4 @@
 version: '3.8'
-
 services:
   sonarqube:
     image: sonarqube:lts
@@ -27,10 +26,17 @@ services:
 
   dependency-check:
     image: owasp/dependency-check
+    environment:
+      - NVD_MIRROR=https://mirror.nvd.nist.gov
+      - DATA_DIRECTORY=/usr/share/dependency-check/data
     volumes:
       - dependency_data:/usr/share/dependency-check/data
       - ./:/src
-    command: --scan /src --format "HTML" --format "JSON" --out /report
+    command: >
+      --scan /src
+      --format "HTML"
+      --format "JSON"
+      --out /src/reports/dependency-check/
     working_dir: /src
 
   trivy:
