@@ -17,7 +17,7 @@ pipeline {
         NVD_API_KEY = credentials('nvd-api-key')
     }
     tools {
-        dependencyCheck 'Dependency-Check'
+        'dependency-check' 'Dependency-Check'
     }
 
     options {
@@ -103,16 +103,13 @@ pipeline {
         // dependency
         stage('Dependency Check') {
             steps {
-                // Dependency Check 실행
                 dependencyCheck additionalArguments: '''
                     --scan ./ 
                     --format "HTML" 
                     --format "XML" 
                     --out "dependency-check-report"
-                    --suppression suppression.xml
                 ''', odcInstallation: 'Dependency-Check'
                 
-                // 리포트 발행
                 dependencyCheckPublisher pattern: 'dependency-check-report.xml'
             }
         }
