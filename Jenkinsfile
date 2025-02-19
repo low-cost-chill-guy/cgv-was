@@ -14,7 +14,7 @@ pipeline {
         ).trim()
         LOC_FILE = credentials('application-local-yaml')
         SONAR_TOKEN = credentials('sonar-token')
-        NVD_API_KEY = credentials('nvd-api-key') // NVD API 키 추가
+        NVD_API_KEY = credentials('nvd-api-key')
     }
 
     options {
@@ -101,7 +101,8 @@ pipeline {
             steps {
                 withCredentials([string(credentialsId: 'nvd-api-key', variable: 'NVD_API_KEY')]) {
                     sh """
-                        docker run --rm -e NVD_API_KEY=${NVD_API_KEY} -v \$(pwd):/src -v \$(pwd)/dependency-check-report:/report owasp/dependency-check \
+                        printenv | grep NVD_API_KEY
+                        docker run --rm -e NVD_API_KEY=\${NVD_API_KEY} -v \$(pwd):/src -v \$(pwd)/dependency-check-report:/report owasp/dependency-check \
                         --scan /src --format "HTML" --format "JSON" --out /report
                     """
                 }
