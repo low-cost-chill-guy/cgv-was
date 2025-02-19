@@ -16,6 +16,7 @@ pipeline {
         SONAR_TOKEN = credentials('sonar-token')
         NVD_API_KEY = credentials('nvd-api-key')
     }
+    
     tools {
         'dependency-check' 'Dependency-Check'
     }
