@@ -97,7 +97,7 @@ pipeline {
             }
         }
 
-        // dependency check!!!!!!!!!!
+        // dependency check!!!!!!!
         stage('Dependency Check Analysis') {
             steps {
                 withCredentials([string(credentialsId: 'nvd-api-key', variable: 'NVD_API_KEY')]) {
