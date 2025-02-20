@@ -156,8 +156,9 @@ pipeline {
                     
                     // HTML 템플릿 다운로드
                     sh '''
+                        rm -rf /tmp/html.tpl
                         curl -o /tmp/html.tpl https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
-                        chmod 644 /tmp/html.tpl
+                        ls -la /tmp/html.tpl
                     '''
                     
                     // Trivy 스캔 실행
