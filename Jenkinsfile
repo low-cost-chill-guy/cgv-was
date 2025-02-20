@@ -131,7 +131,7 @@ pipeline {
                 withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
                     sh """
                         ./gradlew sonar \
-                            -Dsonar.projectKey=mulitijenkins/staging \
+                            -Dsonar.projectKey=jenkinssonaqube \
                             -Dsonar.host.url=http://khp-sonarqube-1:9000 \
                             -Dsonar.login=${SONAR_TOKEN}
                     """
