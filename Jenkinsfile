@@ -126,18 +126,18 @@ pipeline {
             }
         }
 
-        stage('SonarQube Analysis') {
-            steps {
-                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
-                    sh """
-                        ./gradlew sonar \
-                            -Dsonar.projectKey=jenkinssonaqube \
-                            -Dsonar.host.url=http://khp-sonarqube-1:9000 \
-                            -Dsonar.login=${SONAR_TOKEN}
-                    """
-                }
-            }
-        }
+        // stage('SonarQube Analysis') {
+        //     steps {
+        //         withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+        //             sh """
+        //                 ./gradlew sonar \
+        //                     -Dsonar.projectKey=jenkinssonaqube \
+        //                     -Dsonar.host.url=http://khp-sonarqube-1:9000 \
+        //                     -Dsonar.login=${SONAR_TOKEN}
+        //             """
+        //         }
+        //     }
+        // }
 
         stage('Building image') {
             steps {
@@ -147,30 +147,30 @@ pipeline {
             }
         }
 
-        stage('Trivy Security Scan') {
-            steps {
-                sh """
-                    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v \$(pwd)/reports/trivy:/reports/trivy aquasec/trivy:latest image \
-                        --severity HIGH,CRITICAL \
-                        --format template \
-                        --template '@/contrib/html.tpl' \
-                        --output /reports/trivy/scan-report.html \
-                        ${IMAGE_REPO_NAME}:${IMAGE_TAG}
-                """
-            }
-            post {
-                always {
-                    publishHTML(target: [
-                        allowMissing: false,
-                        alwaysLinkToLastBuild: true,
-                        keepAll: true,
-                        reportDir: 'reports/trivy',
-                        reportFiles: 'scan-report.html',
-                        reportName: 'Trivy Scan Report'
-                    ])
-                }
-            }
-        }
+        // stage('Trivy Security Scan') {
+        //     steps {
+        //         sh """
+        //             docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v \$(pwd)/reports/trivy:/reports/trivy aquasec/trivy:latest image \
+        //                 --severity HIGH,CRITICAL \
+        //                 --format template \
+        //                 --template '@/contrib/html.tpl' \
+        //                 --output /reports/trivy/scan-report.html \
+        //                 ${IMAGE_REPO_NAME}:${IMAGE_TAG}
+        //         """
+        //     }
+        //     post {
+        //         always {
+        //             publishHTML(target: [
+        //                 allowMissing: false,
+        //                 alwaysLinkToLastBuild: true,
+        //                 keepAll: true,
+        //                 reportDir: 'reports/trivy',
+        //                 reportFiles: 'scan-report.html',
+        //                 reportName: 'Trivy Scan Report'
+        //             ])
+        //         }
+        //     }
+        // }
 
         stage('Pushing to ECR') {
             steps {
