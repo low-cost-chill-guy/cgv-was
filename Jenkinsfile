@@ -154,25 +154,20 @@ pipeline {
                     sh 'mkdir -p reports/trivy'
                     sh 'chmod -R 777 reports/trivy'
                     
-                    // HTML 템플릿 다운로드 - 기존 파일/디렉토리 완전히 제거 후 다운로드
+                    // HTML 템플릿 다운로드 - 경로 변경 및 확실한 정리
                     sh '''
                         rm -rf /tmp/html.tpl*    # 모든 관련 파일/디렉토리 제거
-                        curl -sSLf -o /tmp/html.tpl https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
+                        TEMPLATE_PATH="/tmp/trivy-template.html"
+                        curl -sSLf -o $TEMPLATE_PATH https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
                         
-                        # 다운로드 확인
-                        if [ ! -f /tmp/html.tpl ]; then
+                        # 파일 존재 확인
+                        if [ ! -f $TEMPLATE_PATH ]; then
                             echo "Template download failed"
-                            exit 1
-                        fi
-                        
-                        # 파일 타입 확인
-                        if [ -d /tmp/html.tpl ]; then
-                            echo "/tmp/html.tpl is a directory, which is incorrect"
                             exit 1
                         fi
                     '''
                     
-                    // Trivy 스캔 실행
+                    // Trivy 스캔 실행 - 템플릿 경로 수정
                     sh """
                         docker run --rm \\
                             -v /var/run/docker.sock:/var/run/docker.sock \\
@@ -181,12 +176,10 @@ pipeline {
                             aquasec/trivy:latest image \\
                             --severity HIGH,CRITICAL \\
                             --format template \\
-                            --template '@/tmp/html.tpl' \\
+                            --template '@/tmp/trivy-template.html' \\
                             --output /report/trivy-scan-report-${env.BUILD_NUMBER}.html \\
                             ${IMAGE_REPO_NAME}:${IMAGE_TAG}
                     """
-                    
-                    sh 'chmod -R 777 reports/trivy'
                 }
             }
             post {
