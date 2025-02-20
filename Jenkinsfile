@@ -149,18 +149,20 @@ pipeline {
 
         stage('Trivy Security Scan') {
             steps {
-                sh 'mkdir -p reports/trivy'
-                sh 'chmod -R 755 reports/trivy'
-                sh """
-                    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${WORKSPACE}/reports/trivy:/reports/trivy aquasec/trivy:latest image \\
-                        --severity HIGH,CRITICAL \\
-                        --output /reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.json \\
-                        ${IMAGE_REPO_NAME}:${IMAGE_TAG}
-                """
-                sh """
-                    docker run --rm -v ${WORKSPACE}/reports/trivy:/reports/trivy python:3.9-slim \\
-                    sh -c "pip install trivy-json-to-html && trivy-json-to-html -i /reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.json -o /reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.html"
-                """
+                script {
+                    // 결과 저장할 디렉토리 생성
+                    sh 'mkdir -p reports/trivy'
+                    sh 'chmod -R 755 reports/trivy'
+                    
+                    // Trivy 스캔 실행 및 JSON 파일 생성
+                    sh """
+                        docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${WORKSPACE}/reports/trivy:/reports/trivy aquasec/trivy:latest image \
+                            --severity HIGH,CRITICAL \
+                            --format template --template '@contrib/html.tpl' \
+                            --output /reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.html \
+                            ${IMAGE_REPO_NAME}:${IMAGE_TAG}
+                    """
+                }
             }
             post {
                 always {
