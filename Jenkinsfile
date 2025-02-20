@@ -14,7 +14,6 @@ pipeline {
         ).trim()
         LOC_FILE = credentials('application-local-yaml')
         SONAR_TOKEN = credentials('sonar-token')
-        DOCKER_IMAGE_NAME = ""
     }
 
     tools {
