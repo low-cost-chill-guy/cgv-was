@@ -149,7 +149,7 @@ pipeline {
 
         stage('Trivy Security Scan') {
             steps {
-                sh 'mkdir -p /var/jenkins_home/workspace/mulitijenkins_staging/reports/trivy'
+                sh 'mkdir -p reports/trivy' // 상대 경로로 수정
                 sh 'pwd'
                 sh 'echo $WORKSPACE'
                 sh """
@@ -157,7 +157,7 @@ pipeline {
                         --severity HIGH,CRITICAL \\
                         --format template \\
                         --template '@/contrib/html.tpl' \\
-                        --output ${WORKSPACE}/reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.html \\
+                        --output /reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.html \\ // 컨테이너 내부 경로로 수정
                         ${IMAGE_REPO_NAME}:${IMAGE_TAG}
                 """
             }
@@ -167,7 +167,7 @@ pipeline {
                         allowMissing: false,
                         alwaysLinkToLastBuild: true,
                         keepAll: true,
-                        reportDir: 'reports/trivy',
+                        reportDir: 'reports/trivy', // 상대 경로로 수정
                         reportFiles: "trivy-scan-report-${env.BUILD_NUMBER}.html",
                         reportName: 'Trivy Scan Report'
                     ])
