@@ -158,7 +158,8 @@ pipeline {
                         ${IMAGE_REPO_NAME}:${IMAGE_TAG}
                 """
                 sh """
-                    docker run --rm -v ${WORKSPACE}/reports/trivy:/reports/trivy knqyf263/trivy-html-report:0.3.4 -in /reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.json -out /reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.html
+                    pip install trivy-json-to-html
+                    trivy-json-to-html -i reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.json -o reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.html
                 """
             }
             post {
