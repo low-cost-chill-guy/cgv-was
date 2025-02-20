@@ -147,6 +147,55 @@ pipeline {
             }
         }
 
+        // stage('Trivy Security Scan') {
+        //     steps {
+        //         script {
+        //             // 결과 저장할 디렉토리 생성
+        //             sh 'mkdir -p reports/trivy'
+        //             sh 'chmod -R 777 reports/trivy'
+                    
+        //             // HTML 템플릿 다운로드 - 경로 변경 및 확실한 정리
+        //             sh '''
+        //                 rm -rf /tmp/html.tpl*    # 모든 관련 파일/디렉토리 제거
+        //                 TEMPLATE_PATH="/tmp/trivy-template.html"
+        //                 curl -sSLf -o $TEMPLATE_PATH https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
+                        
+        //                 # 파일 존재 확인
+        //                 if [ ! -f $TEMPLATE_PATH ]; then
+        //                     echo "Template download failed"
+        //                     exit 1
+        //                 fi
+        //             '''
+                    
+        //             // Trivy 스캔 실행 - 템플릿 경로 수정
+        //             sh """
+        //                 docker run --rm \\
+        //                     -v /var/run/docker.sock:/var/run/docker.sock \\
+        //                     -v /tmp:/tmp \\
+        //                     -v ${WORKSPACE}/reports/trivy:/report \\
+        //                     aquasec/trivy:latest image \\
+        //                     --severity HIGH,CRITICAL \\
+        //                     --format template \\
+        //                     --template '@/tmp/trivy-template.html' \\
+        //                     --output /report/trivy-scan-report-${env.BUILD_NUMBER}.html \\
+        //                     ${IMAGE_REPO_NAME}:${IMAGE_TAG}
+        //             """
+        //         }
+        //     }
+        //     post {
+        //         always {
+        //             publishHTML(target: [
+        //                 allowMissing: false,
+        //                 alwaysLinkToLastBuild: true,
+        //                 keepAll: true,
+        //                 reportDir: 'reports/trivy',
+        //                 reportFiles: "trivy-scan-report-${env.BUILD_NUMBER}.html",
+        //                 reportName: 'Trivy Scan Report'
+        //             ])
+        //         }
+        //     }
+        // }
+
         stage('Trivy Security Scan') {
             steps {
                 script {
@@ -154,30 +203,18 @@ pipeline {
                     sh 'mkdir -p reports/trivy'
                     sh 'chmod -R 777 reports/trivy'
                     
-                    // HTML 템플릿 다운로드 - 경로 변경 및 확실한 정리
-                    sh '''
-                        rm -rf /tmp/html.tpl*    # 모든 관련 파일/디렉토리 제거
-                        TEMPLATE_PATH="/tmp/trivy-template.html"
-                        curl -sSLf -o $TEMPLATE_PATH https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
-                        
-                        # 파일 존재 확인
-                        if [ ! -f $TEMPLATE_PATH ]; then
-                            echo "Template download failed"
-                            exit 1
-                        fi
-                    '''
-                    
-                    // Trivy 스캔 실행 - 템플릿 경로 수정
+                    // Trivy 스캔 실행
                     sh """
-                        docker run --rm \\
-                            -v /var/run/docker.sock:/var/run/docker.sock \\
-                            -v /tmp:/tmp \\
-                            -v ${WORKSPACE}/reports/trivy:/report \\
-                            aquasec/trivy:latest image \\
-                            --severity HIGH,CRITICAL \\
-                            --format template \\
-                            --template '@/tmp/trivy-template.html' \\
-                            --output /report/trivy-scan-report-${env.BUILD_NUMBER}.html \\
+                        trivy image \
+                            --severity HIGH,CRITICAL \
+                            --no-progress \
+                            --format table \
+                            ${IMAGE_REPO_NAME}:${IMAGE_TAG} || true
+                        
+                        trivy image \
+                            --format template \
+                            --template '@/usr/local/share/trivy/templates/html.tpl' \
+                            --output reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.html \
                             ${IMAGE_REPO_NAME}:${IMAGE_TAG}
                     """
                 }
