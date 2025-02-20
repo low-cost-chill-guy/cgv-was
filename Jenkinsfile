@@ -154,7 +154,7 @@ pipeline {
                     sh 'pwd' // 현재 작업 디렉터리 출력
                     sh 'echo $WORKSPACE' // 작업 공간 경로 출력
                     sh """
-                        docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${WORKSPACE}/reports/trivy:/reports/trivy aquasec/trivy:latest image ${dockerImage.id()} \\
+                        docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${WORKSPACE}/reports/trivy:/reports/trivy aquasec/trivy:latest image ${dockerImage.imageName} \\
                             --severity HIGH,CRITICAL \\
                             --format template \\
                             --template '@/contrib/html.tpl' \\
