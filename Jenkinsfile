@@ -143,8 +143,12 @@ pipeline {
         stage('Building image') {
             steps {
                 script {
-                    dockerImage = docker.build("${IMAGE_REPO_NAME}:${IMAGE_TAG}")
-                    env.DOCKER_IMAGE_NAME = "${IMAGE_REPO_NAME}:${IMAGE_TAG}" // 환경 변수에 이미지 이름 저장
+                    try {
+                        dockerImage = docker.build("${IMAGE_REPO_NAME}:${IMAGE_TAG}")
+                        env.DOCKER_IMAGE_NAME = "${IMAGE_REPO_NAME}:${IMAGE_TAG}"
+                    } catch (e) {
+                        error "Docker image build failed: ${e.getMessage()}"
+                    }
                 }
             }
         }
@@ -152,6 +156,9 @@ pipeline {
         stage('Trivy Security Scan') {
             steps {
                 script {
+                    if (!env.DOCKER_IMAGE_NAME) {
+                        error "DOCKER_IMAGE_NAME is not set. Trivy scan skipped."
+                    }
                     sh 'mkdir -p /var/jenkins_home/workspace/mulitijenkins_staging/reports/trivy'
                     sh 'pwd'
                     sh 'echo $WORKSPACE'
