@@ -157,7 +157,7 @@ pipeline {
                     docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v \${WORKSPACE}/reports/trivy:/reports/trivy aquasec/trivy:latest image \\
                         --severity HIGH,CRITICAL \\
                         --output /reports/trivy/trivy-scan-report-\${env.BUILD_NUMBER}.json \\
-                        \${IMAGE_REPO_NAME}:\${IMAGE_TAG}
+                        ${IMAGE_REPO_NAME}:${IMAGE_TAG}
                 """
                 archiveArtifacts artifacts: 'reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.json'
             }
