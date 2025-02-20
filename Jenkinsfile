@@ -157,7 +157,7 @@ pipeline {
                         --severity HIGH,CRITICAL \\
                         --format template \\
                         --template '@/contrib/html.tpl' \\
-                        --output /reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.html \\ // 컨테이너 내부 경로로 수정
+                        --output /reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.html \\
                         ${IMAGE_REPO_NAME}:${IMAGE_TAG}
                 """
             }
