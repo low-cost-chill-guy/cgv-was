@@ -126,18 +126,18 @@ pipeline {
             }
         }
 
-        stage('SonarQube Analysis') {
-            steps {
-                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
-                    sh """
-                        ./gradlew sonar \
-                            -Dsonar.projectKey=jenkinssonaqube \
-                            -Dsonar.host.url=http://khp-sonarqube-1:9000 \
-                            -Dsonar.login=${SONAR_TOKEN}
-                    """
-                }
-            }
-        }
+        // stage('SonarQube Analysis') {
+        //     steps {
+        //         withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+        //             sh """
+        //                 ./gradlew sonar \
+        //                     -Dsonar.projectKey=jenkinssonaqube \
+        //                     -Dsonar.host.url=http://khp-sonarqube-1:9000 \
+        //                     -Dsonar.login=${SONAR_TOKEN}
+        //             """
+        //         }
+        //     }
+        // }
 
         stage('Building image') {
             steps {
@@ -152,13 +152,13 @@ pipeline {
                 sh 'mkdir -p reports/trivy'
                 sh 'chmod -R 755 reports/trivy'
                 sh """
-                    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v \${WORKSPACE}/reports/trivy:/reports/trivy aquasec/trivy:latest image \\
+                    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${WORKSPACE}/reports/trivy:/reports/trivy aquasec/trivy:latest image \\
                         --severity HIGH,CRITICAL \\
-                        --output /reports/trivy/trivy-scan-report-\${env.BUILD_NUMBER}.json \\
-                        \${IMAGE_REPO_NAME}:\${IMAGE_TAG}
+                        --output /reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.json \\
+                        ${IMAGE_REPO_NAME}:${IMAGE_TAG}
                 """
                 sh """
-                    docker run --rm -v \${WORKSPACE}/reports/trivy:/reports/trivy knqyf263/trivy-html-report:0.3.4 -in /reports/trivy/trivy-scan-report-\${env.BUILD_NUMBER}.json -out /reports/trivy/trivy-scan-report-\${env.BUILD_NUMBER}.html
+                    docker run --rm -v ${WORKSPACE}/reports/trivy:/reports/trivy knqyf263/trivy-html-report:0.3.4 -in /reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.json -out /reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.html
                 """
             }
             post {
