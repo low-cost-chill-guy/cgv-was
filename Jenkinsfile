@@ -14,7 +14,10 @@ pipeline {
         ).trim()
         LOC_FILE = credentials('application-local-yaml')
         SONAR_TOKEN = credentials('sonar-token')
-        NVD_API_KEY = credentials('nvd-api-key')
+    }
+
+    tools {
+        'dependency-check' 'Dependency-Check'
     }
 
     options {
@@ -97,27 +100,21 @@ pipeline {
             }
         }
 
-        // dependency check!!!!!!!
-        stage('Dependency Check Analysis') {
+        stage('Dependency Check') {
             steps {
                 withCredentials([string(credentialsId: 'nvd-api-key', variable: 'NVD_API_KEY')]) {
-                    sh """
-                        printenv | grep NVD_API_KEY
-                        docker run --rm -v \$(pwd):/src -v \$(pwd)/dependency-check-report:/report owasp/dependency-check \
-                        --scan /src --format "HTML" --format "JSON" --out /report --nvdApiKey \${NVD_API_KEY}	
-                    """
-                }
-            }
-            post {
-                always {
-                    publishHTML(target: [
-                        allowMissing: false,
-                        alwaysLinkToLastBuild: true,
-                        keepAll: true,
-                        reportDir: 'dependency-check-report',
-                        reportFiles: 'dependency-check-report.html',
-                        reportName: 'Dependency Check Report'
-                    ])
+                    sh 'mkdir -p dependency-check-reports'
+
+                    dependencyCheck additionalArguments: """
+                        --scan ./
+                        --format "HTML"
+                        --format "XML"
+                        --out ./dependency-check-reports
+                        --data /var/jenkins_home/dependency-check-data
+                        --nvdApiKey ${NVD_API_KEY}
+                    """, odcInstallation: 'Dependency-Check'
+
+                    dependencyCheckPublisher pattern: 'dependency-check-reports/dependency-check-report.xml'
                 }
             }
         }
@@ -134,8 +131,8 @@ pipeline {
                 withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
                     sh """
                         ./gradlew sonar \
-                            -Dsonar.projectKey=mulitijenkins/staging \
-                            -Dsonar.host.url=http://localhost:9000 \
+                            -Dsonar.projectKey=jenkinssonaqube \
+                            -Dsonar.host.url=http://khp-sonarqube-1:9000 \
                             -Dsonar.login=${SONAR_TOKEN}
                     """
                 }
