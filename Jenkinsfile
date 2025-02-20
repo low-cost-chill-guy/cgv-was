@@ -149,12 +149,13 @@ pipeline {
 
         stage('Trivy Security Scan') {
             steps {
+                sh 'mkdir -p reports/trivy' 
                 sh """
-                    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v \$(pwd)/reports/trivy:/reports/trivy aquasec/trivy:latest image \
-                        --severity HIGH,CRITICAL \
-                        --format template \
-                        --template '@/contrib/html.tpl' \
-                        --output /reports/trivy/scan-report.html \
+                    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v \$(pwd)/reports/trivy:/reports/trivy aquasec/trivy:latest image \\
+                        --severity HIGH,CRITICAL \\
+                        --format template \\
+                        --template '@/contrib/html.tpl' \\
+                        --output /reports/trivy/scan-report.html \\
                         ${IMAGE_REPO_NAME}:${IMAGE_TAG}
                 """
             }
