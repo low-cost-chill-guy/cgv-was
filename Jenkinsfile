@@ -14,6 +14,7 @@ pipeline {
         ).trim()
         LOC_FILE = credentials('application-local-yaml')
         SONAR_TOKEN = credentials('sonar-token')
+        DOCKER_IMAGE_NAME = ""
     }
 
     tools {
@@ -143,6 +144,7 @@ pipeline {
             steps {
                 script {
                     dockerImage = docker.build("${IMAGE_REPO_NAME}:${IMAGE_TAG}")
+                    env.DOCKER_IMAGE_NAME = "${IMAGE_REPO_NAME}:${IMAGE_TAG}" // 환경 변수에 이미지 이름 저장
                 }
             }
         }
@@ -151,10 +153,10 @@ pipeline {
             steps {
                 script {
                     sh 'mkdir -p /var/jenkins_home/workspace/mulitijenkins_staging/reports/trivy'
-                    sh 'pwd' // 현재 작업 디렉터리 출력
-                    sh 'echo $WORKSPACE' // 작업 공간 경로 출력
+                    sh 'pwd'
+                    sh 'echo $WORKSPACE'
                     sh """
-                        docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${WORKSPACE}/reports/trivy:/reports/trivy aquasec/trivy:latest image ${dockerImage.imageName} \\
+                        docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${WORKSPACE}/reports/trivy:/reports/trivy aquasec/trivy:latest image ${env.DOCKER_IMAGE_NAME} \\
                             --severity HIGH,CRITICAL \\
                             --format template \\
                             --template '@/contrib/html.tpl' \\
