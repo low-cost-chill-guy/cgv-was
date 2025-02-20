@@ -149,7 +149,7 @@ pipeline {
 
         stage('Trivy Security Scan') {
             steps {
-                sh 'mkdir -p reports/trivy'
+                sh 'mkdir -p /var/jenkins_home/workspace/mulitijenkins_staging/reports/trivy'
                 sh """
                     docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v \$(pwd)/reports/trivy:/reports/trivy aquasec/trivy:latest image \\
                         --severity HIGH,CRITICAL \\
