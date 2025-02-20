@@ -159,7 +159,11 @@ pipeline {
                         --output /reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.json \\
                         ${IMAGE_REPO_NAME}:${IMAGE_TAG}
                 """
-                // JSON to HTML 변환 스크립트 (예시)
+                // 백슬래시 이스케이프
+                sh """
+                    jq -r '.Results[] | "<h2>\\(.Target)</h2><ul>" + (.Vulnerabilities[] | "<li>\\(.VulnerabilityID): \\(.Title)</li>") + "</ul>"' reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.json > reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.html
+                """
+                // 또는 히어 문서 사용
                 sh """
                     jq -r '.Results[] | "<h2>\(.Target)</h2><ul>" + (.Vulnerabilities[] | "<li>\(.VulnerabilityID): \(.Title)</li>") + "</ul>"' reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.json > reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.html
                 """
@@ -171,7 +175,7 @@ pipeline {
                         alwaysLinkToLastBuild: true,
                         keepAll: true,
                         reportDir: 'reports/trivy',
-                        reportFiles: "trivy-scan-report-${env.BUILD_NUMBER}.html", // HTML 파일로 변경
+                        reportFiles: "trivy-scan-report-${env.BUILD_NUMBER}.html",
                         reportName: 'Trivy Scan Report'
                     ])
                 }
