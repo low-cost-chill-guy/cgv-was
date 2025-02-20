@@ -151,7 +151,7 @@ pipeline {
             steps {
                 sh 'mkdir -p /var/jenkins_home/workspace/mulitijenkins_staging/reports/trivy'
                 sh """
-                    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v \$(pwd)/reports/trivy:/reports/trivy aquasec/trivy:latest image \\
+                    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${WORKSPACE}/reports/trivy:/reports/trivy aquasec/trivy:latest image \\
                         --severity HIGH,CRITICAL \\
                         --format template \\
                         --template '@/contrib/html.tpl' \\
