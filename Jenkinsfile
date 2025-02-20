@@ -150,17 +150,26 @@ pipeline {
         stage('Trivy Security Scan') {
             steps {
                 script {
-                    // 결과 저장할 디렉토리 생성
-                    sh 'mkdir -p reports/trivy'
-                    sh 'chmod -R 755 reports/trivy'
+                    // 디렉토리 생성 및 권한 설정 강화
+                    sh '''
+                        mkdir -p reports/trivy
+                        chmod -R 777 reports/trivy
+                        chown -R jenkins:jenkins reports/trivy
+                    '''
                     
-                    // Trivy 스캔 실행 및 JSON 파일 생성
+                    // Trivy 스캔 실행
                     sh """
                         docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${WORKSPACE}/reports/trivy:/reports/trivy aquasec/trivy:latest image \
                             --severity HIGH,CRITICAL \
                             --format template --template '@contrib/html.tpl' \
                             --output /reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.html \
                             ${IMAGE_REPO_NAME}:${IMAGE_TAG}
+                    """
+                    
+                    // 생성된 리포트 파일에 대한 권한 설정
+                    sh """
+                        chmod -R 777 reports/trivy
+                        chown -R jenkins:jenkins reports/trivy/*
                     """
                 }
             }
