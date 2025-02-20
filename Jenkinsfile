@@ -154,17 +154,18 @@ pipeline {
                     sh 'mkdir -p reports/trivy'
                     sh 'chmod -R 777 reports/trivy'
                     
-                    // HTML 템플릿 다운로드 및 저장
+                    // HTML 템플릿 다운로드
                     sh '''
                         curl -o /tmp/html.tpl https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
+                        chmod 644 /tmp/html.tpl
                     '''
                     
-                    // Trivy 스캔 실행 및 HTML 파일 생성
+                    // Trivy 스캔 실행
                     sh """
                         docker run --rm \
                             -v /var/run/docker.sock:/var/run/docker.sock \
+                            -v /tmp:/tmp \
                             -v ${WORKSPACE}/reports/trivy:/report \
-                            -v /tmp/html.tpl:/tmp/html.tpl \
                             aquasec/trivy:latest image \
                             --severity HIGH,CRITICAL \
                             --format template \
@@ -173,7 +174,7 @@ pipeline {
                             ${IMAGE_REPO_NAME}:${IMAGE_TAG}
                     """
                     
-                    // 생성된 파일의 권한 설정
+                    // 결과 파일 권한 설정
                     sh 'chmod -R 777 reports/trivy'
                 }
             }
