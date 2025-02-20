@@ -158,10 +158,8 @@ pipeline {
                         ${IMAGE_REPO_NAME}:${IMAGE_TAG}
                 """
                 sh """
-                    python3 -m venv venv
-                    source venv/bin/activate
-                    pip install trivy-json-to-html
-                    trivy-json-to-html -i reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.json -o reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.html
+                    docker run --rm -v \${WORKSPACE}/reports/trivy:/reports/trivy python:3.9-slim \\
+                    sh -c "pip install trivy-json-to-html && trivy-json-to-html -i /reports/trivy/trivy-scan-report-\${env.BUILD_NUMBER}.json -o /reports/trivy/trivy-scan-report-\${env.BUILD_NUMBER}.html"
                 """
             }
             post {
