@@ -151,15 +151,27 @@ pipeline {
             steps {
                 sh 'mkdir -p reports/trivy'
                 sh 'chmod -R 755 reports/trivy'
-                sh 'pwd'
-                sh 'echo $WORKSPACE'
                 sh """
-                    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${WORKSPACE}/reports/trivy:/reports/trivy aquasec/trivy:latest image \\
+                    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v \${WORKSPACE}/reports/trivy:/reports/trivy aquasec/trivy:latest image \\
                         --severity HIGH,CRITICAL \\
-                        --output /reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.json \\
-                        ${IMAGE_REPO_NAME}:${IMAGE_TAG}
+                        --output /reports/trivy/trivy-scan-report-\${env.BUILD_NUMBER}.json \\
+                        \${IMAGE_REPO_NAME}:\${IMAGE_TAG}
                 """
-                archiveArtifacts artifacts: 'reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.json'
+                sh """
+                    docker run --rm -v \${WORKSPACE}/reports/trivy:/reports/trivy knqyf263/trivy-html-report:0.3.4 -in /reports/trivy/trivy-scan-report-\${env.BUILD_NUMBER}.json -out /reports/trivy/trivy-scan-report-\${env.BUILD_NUMBER}.html
+                """
+            }
+            post {
+                always {
+                    publishHTML(target: [
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'reports/trivy',
+                        reportFiles: "trivy-scan-report-${env.BUILD_NUMBER}.html",
+                        reportName: 'Trivy Scan Report'
+                    ])
+                }
             }
         }
 
