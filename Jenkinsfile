@@ -149,11 +149,15 @@ pipeline {
 
         stage('Trivy Security Scan') {
             steps {
-                sh 'mkdir -p reports/trivy' // 상대 경로로 수정
+                sh 'mkdir -p reports/trivy'
+                sh 'chmod -R 755 reports/trivy' // 권한 부여 추가
                 sh 'pwd'
                 sh 'echo $WORKSPACE'
                 sh """
-                    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${WORKSPACE}/reports/trivy:/reports/trivy aquasec/trivy:latest image --severity HIGH,CRITICAL --output /reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.json ${IMAGE_REPO_NAME}:${IMAGE_TAG}
+                    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${WORKSPACE}/reports/trivy:/reports/trivy aquasec/trivy:latest image \\
+                        --severity HIGH,CRITICAL \\
+                        --output /reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.json \\
+                        ${IMAGE_REPO_NAME}:${IMAGE_TAG}
                 """
             }
             post {
@@ -162,8 +166,8 @@ pipeline {
                         allowMissing: false,
                         alwaysLinkToLastBuild: true,
                         keepAll: true,
-                        reportDir: 'reports/trivy', // 상대 경로로 수정
-                        reportFiles: "trivy-scan-report-${env.BUILD_NUMBER}.html",
+                        reportDir: 'reports/trivy',
+                        reportFiles: "trivy-scan-report-${env.BUILD_NUMBER}.json", // JSON 파일로 변경
                         reportName: 'Trivy Scan Report'
                     ])
                 }
