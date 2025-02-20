@@ -153,12 +153,11 @@ pipeline {
                 sh 'pwd' // 현재 작업 디렉터리 출력
                 sh 'echo $WORKSPACE' // 작업 공간 경로 출력
                 sh """
-                    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${WORKSPACE}/reports/trivy:/reports/trivy aquasec/trivy:latest image \\
+                    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${WORKSPACE}/reports/trivy:/reports/trivy aquasec/trivy:latest image ${IMAGE_REPO_NAME} \\
                         --severity HIGH,CRITICAL \\
                         --format template \\
                         --template '@/contrib/html.tpl' \\
                         --output ${WORKSPACE}/reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.html \\
-                        image ${IMAGE_REPO_NAME}:${IMAGE_TAG}
                 """
             }
             post {
