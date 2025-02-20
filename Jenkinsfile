@@ -149,13 +149,13 @@ pipeline {
 
         stage('Trivy Security Scan') {
             steps {
-                sh 'mkdir -p reports/trivy' 
+                sh 'mkdir -p reports/trivy'
                 sh """
                     docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v \$(pwd)/reports/trivy:/reports/trivy aquasec/trivy:latest image \\
                         --severity HIGH,CRITICAL \\
                         --format template \\
                         --template '@/contrib/html.tpl' \\
-                        --output /reports/trivy/scan-report.html \\
+                        --output ${WORKSPACE}/reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.html \\
                         ${IMAGE_REPO_NAME}:${IMAGE_TAG}
                 """
             }
@@ -166,7 +166,7 @@ pipeline {
                         alwaysLinkToLastBuild: true,
                         keepAll: true,
                         reportDir: 'reports/trivy',
-                        reportFiles: 'scan-report.html',
+                        reportFiles: "trivy-scan-report-${env.BUILD_NUMBER}.html",
                         reportName: 'Trivy Scan Report'
                     ])
                 }
