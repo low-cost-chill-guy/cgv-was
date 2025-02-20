@@ -154,28 +154,38 @@ pipeline {
                     sh 'mkdir -p reports/trivy'
                     sh 'chmod -R 777 reports/trivy'
                     
-                    // HTML 템플릿 다운로드
+                    // HTML 템플릿 다운로드 - 기존 파일/디렉토리 완전히 제거 후 다운로드
                     sh '''
-                        rm -rf /tmp/html.tpl
-                        curl -o /tmp/html.tpl https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
-                        ls -la /tmp/html.tpl
+                        rm -rf /tmp/html.tpl*    # 모든 관련 파일/디렉토리 제거
+                        curl -sSLf -o /tmp/html.tpl https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
+                        
+                        # 다운로드 확인
+                        if [ ! -f /tmp/html.tpl ]; then
+                            echo "Template download failed"
+                            exit 1
+                        fi
+                        
+                        # 파일 타입 확인
+                        if [ -d /tmp/html.tpl ]; then
+                            echo "/tmp/html.tpl is a directory, which is incorrect"
+                            exit 1
+                        fi
                     '''
                     
                     // Trivy 스캔 실행
                     sh """
-                        docker run --rm \
-                            -v /var/run/docker.sock:/var/run/docker.sock \
-                            -v /tmp:/tmp \
-                            -v ${WORKSPACE}/reports/trivy:/report \
-                            aquasec/trivy:latest image \
-                            --severity HIGH,CRITICAL \
-                            --format template \
-                            --template '@/tmp/html.tpl' \
-                            --output /report/trivy-scan-report-${env.BUILD_NUMBER}.html \
+                        docker run --rm \\
+                            -v /var/run/docker.sock:/var/run/docker.sock \\
+                            -v /tmp:/tmp \\
+                            -v ${WORKSPACE}/reports/trivy:/report \\
+                            aquasec/trivy:latest image \\
+                            --severity HIGH,CRITICAL \\
+                            --format template \\
+                            --template '@/tmp/html.tpl' \\
+                            --output /report/trivy-scan-report-${env.BUILD_NUMBER}.html \\
                             ${IMAGE_REPO_NAME}:${IMAGE_TAG}
                     """
                     
-                    // 결과 파일 권한 설정
                     sh 'chmod -R 777 reports/trivy'
                 }
             }
