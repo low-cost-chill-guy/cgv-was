@@ -156,41 +156,12 @@ pipeline {
                 sh """
                     docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v \${WORKSPACE}/reports/trivy:/reports/trivy aquasec/trivy:latest image \\
                         --severity HIGH,CRITICAL \\
-                        --format template \\
-                        --template "@/contrib/html.tpl" \\
-                        --output /reports/trivy/trivy-scan-report-\${env.BUILD_NUMBER}.html \\
+                        --output /reports/trivy/trivy-scan-report-\${env.BUILD_NUMBER}.json \\
                         \${IMAGE_REPO_NAME}:\${IMAGE_TAG}
                 """
-            }
-            post {
-                always {
-                    publishHTML(target: [
-                        allowMissing: false,
-                        alwaysLinkToLastBuild: true,
-                        keepAll: true,
-                        reportDir: 'reports/trivy',
-                        reportFiles: "trivy-scan-report-${env.BUILD_NUMBER}.html",
-                        reportName: 'Trivy Scan Report'
-                    ])
-                }
+                archiveArtifacts artifacts: 'reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.json'
             }
         }
-
-        // stage('Trivy Security Scan') {
-        //     steps {
-        //         sh 'mkdir -p reports/trivy'
-        //         sh 'chmod -R 755 reports/trivy'
-        //         sh 'pwd'
-        //         sh 'echo $WORKSPACE'
-        //         sh """
-        //             docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v \${WORKSPACE}/reports/trivy:/reports/trivy aquasec/trivy:latest image \\
-        //                 --severity HIGH,CRITICAL \\
-        //                 --output /reports/trivy/trivy-scan-report-\${env.BUILD_NUMBER}.json \\
-        //                 \${IMAGE_REPO_NAME}:\${IMAGE_TAG}
-        //         """
-        //         archiveArtifacts artifacts: 'reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.json'
-        //     }
-        // }
 
         stage('Pushing to ECR') {
             steps {
