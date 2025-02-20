@@ -149,16 +149,18 @@ pipeline {
 
         stage('Trivy Security Scan') {
             steps {
-                sh 'mkdir -p /var/jenkins_home/workspace/mulitijenkins_staging/reports/trivy'
-                sh 'pwd' // 현재 작업 디렉터리 출력
-                sh 'echo $WORKSPACE' // 작업 공간 경로 출력
-                sh """
-                    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${WORKSPACE}/reports/trivy:/reports/trivy aquasec/trivy:latest image ${IMAGE_REPO_NAME} \\
-                        --severity HIGH,CRITICAL \\
-                        --format template \\
-                        --template '@/contrib/html.tpl' \\
-                        --output ${WORKSPACE}/reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.html \\
-                """
+                script {
+                    sh 'mkdir -p /var/jenkins_home/workspace/mulitijenkins_staging/reports/trivy'
+                    sh 'pwd' // 현재 작업 디렉터리 출력
+                    sh 'echo $WORKSPACE' // 작업 공간 경로 출력
+                    sh """
+                        docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${WORKSPACE}/reports/trivy:/reports/trivy aquasec/trivy:latest image ${dockerImage.id()} \\
+                            --severity HIGH,CRITICAL \\
+                            --format template \\
+                            --template '@/contrib/html.tpl' \\
+                            --output ${WORKSPACE}/reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.html \\
+                    """
+                }
             }
             post {
                 always {
