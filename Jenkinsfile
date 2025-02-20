@@ -150,27 +150,25 @@ pipeline {
         stage('Trivy Security Scan') {
             steps {
                 script {
-                    // 결과 저장할 디렉토리 생성
+                    // Jenkins 컨테이너 내부의 사용자 ID 확인
+                    def jenkinsUid = sh(script: 'id -u', returnStdout: true).trim()
+                    def jenkinsGid = sh(script: 'id -g', returnStdout: true).trim()
+                    
                     sh 'mkdir -p reports/trivy'
                     sh 'chmod -R 777 reports/trivy'
                     
-                    // Trivy 스캔 실행 및 HTML 파일 생성
+                    // Trivy 실행 시 사용자 ID 매핑
                     sh """
                         docker run --rm \
                             -v /var/run/docker.sock:/var/run/docker.sock \
                             -v ${WORKSPACE}/reports/trivy:/report \
+                            -u ${jenkinsUid}:${jenkinsGid} \
                             aquasec/trivy:latest image \
                             --severity HIGH,CRITICAL \
                             --format template \
                             --template '@contrib/html.tpl' \
                             --output /report/trivy-scan-report-${env.BUILD_NUMBER}.html \
                             ${IMAGE_REPO_NAME}:${IMAGE_TAG}
-                    """
-                    
-                    // 생성된 파일의 권한 설정
-                    sh """
-                        chmod -R 777 reports/trivy
-                        chown -R jenkins:jenkins reports/trivy
                     """
                 }
             }
