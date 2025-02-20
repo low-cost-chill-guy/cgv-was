@@ -147,6 +147,33 @@ pipeline {
             }
         }
 
+        stage('Trivy Security Scan') {
+            steps {
+                sh 'mkdir -p /var/jenkins_home/workspace/mulitijenkins_staging/reports/trivy'
+                sh 'pwd'
+                sh 'echo $WORKSPACE'
+                sh """
+                    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${WORKSPACE}/reports/trivy:/reports/trivy aquasec/trivy:latest image \\
+                        --severity HIGH,CRITICAL \\
+                        --format template \\
+                        --template '@/contrib/html.tpl' \\
+                        --output ${WORKSPACE}/reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.html \\
+                        ${IMAGE_REPO_NAME}:${IMAGE_TAG}
+                """
+            }
+            post {
+                always {
+                    publishHTML(target: [
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'reports/trivy',
+                        reportFiles: "trivy-scan-report-${env.BUILD_NUMBER}.html",
+                        reportName: 'Trivy Scan Report'
+                    ])
+                }
+            }
+        }
 
         stage('Pushing to ECR') {
             steps {
@@ -158,35 +185,6 @@ pipeline {
                         docker tag ${IMAGE_REPO_NAME}:${IMAGE_TAG} ${REPOSITORY_URI}:latest
                         docker push ${REPOSITORY_URI}:latest
                     """
-                }
-            }
-        }
-
-        stage('Trivy Security Scan (ECR)') {
-            steps {
-                script {
-                    sh 'mkdir -p /var/jenkins_home/workspace/mulitijenkins_staging/reports/trivy'
-                    sh 'pwd'
-                    sh 'echo $WORKSPACE'
-                    sh """
-                        docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${WORKSPACE}/reports/trivy:/reports/trivy aquasec/trivy:latest image ${REPOSITORY_URI}:${IMAGE_TAG} \\
-                            --severity HIGH,CRITICAL \\
-                            --format template \\
-                            --template '@/contrib/html.tpl' \\
-                            --output ${WORKSPACE}/reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}-ecr.html \\
-                    """
-                }
-            }
-            post {
-                always {
-                    publishHTML(target: [
-                        allowMissing: false,
-                        alwaysLinkToLastBuild: true,
-                        keepAll: true,
-                        reportDir: 'reports/trivy',
-                        reportFiles: "trivy-scan-report-${env.BUILD_NUMBER}-ecr.html",
-                        reportName: 'Trivy ECR Scan Report'
-                    ])
                 }
             }
         }
