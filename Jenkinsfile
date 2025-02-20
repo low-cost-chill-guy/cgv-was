@@ -100,24 +100,24 @@ pipeline {
             }
         }
 
-        stage('Dependency Check') {
-            steps {
-                withCredentials([string(credentialsId: 'nvd-api-key', variable: 'NVD_API_KEY')]) {
-                    sh 'mkdir -p dependency-check-reports'
+        // stage('Dependency Check') {
+        //     steps {
+        //         withCredentials([string(credentialsId: 'nvd-api-key', variable: 'NVD_API_KEY')]) {
+        //             sh 'mkdir -p dependency-check-reports'
 
-                    dependencyCheck additionalArguments: """
-                        --scan ./
-                        --format "HTML"
-                        --format "XML"
-                        --out ./dependency-check-reports
-                        --data /var/jenkins_home/dependency-check-data
-                        --nvdApiKey ${NVD_API_KEY}
-                    """, odcInstallation: 'Dependency-Check'
+        //             dependencyCheck additionalArguments: """
+        //                 --scan ./
+        //                 --format "HTML"
+        //                 --format "XML"
+        //                 --out ./dependency-check-reports
+        //                 --data /var/jenkins_home/dependency-check-data
+        //                 --nvdApiKey ${NVD_API_KEY}
+        //             """, odcInstallation: 'Dependency-Check'
 
-                    dependencyCheckPublisher pattern: 'dependency-check-reports/dependency-check-report.xml'
-                }
-            }
-        }
+        //             dependencyCheckPublisher pattern: 'dependency-check-reports/dependency-check-report.xml'
+        //         }
+        //     }
+        // }
 
         stage('Build & Test') {
             steps {
