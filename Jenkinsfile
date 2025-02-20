@@ -154,18 +154,12 @@ pipeline {
                 sh 'pwd'
                 sh 'echo $WORKSPACE'
                 sh """
-                    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${WORKSPACE}/reports/trivy:/reports/trivy aquasec/trivy:latest image \\
+                    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v \${WORKSPACE}/reports/trivy:/reports/trivy aquasec/trivy:latest image \\
                         --severity HIGH,CRITICAL \\
-                        --output /reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.json \\
-                        ${IMAGE_REPO_NAME}:${IMAGE_TAG}
-                """
-                // 백슬래시 이스케이프
-                sh """
-                    jq -r '.Results[] | "<h2>\\(.Target)</h2><ul>" + (.Vulnerabilities[] | "<li>\\(.VulnerabilityID): \\(.Title)</li>") + "</ul>"' reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.json > reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.html
-                """
-                // 또는 히어 문서 사용
-                sh """
-                    jq -r '.Results[] | "<h2>\(.Target)</h2><ul>" + (.Vulnerabilities[] | "<li>\(.VulnerabilityID): \(.Title)</li>") + "</ul>"' reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.json > reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.html
+                        --format template \\
+                        --template "@/contrib/html.tpl" \\
+                        --output /reports/trivy/trivy-scan-report-\${env.BUILD_NUMBER}.html \\
+                        \${IMAGE_REPO_NAME}:\${IMAGE_TAG}
                 """
             }
             post {
@@ -181,6 +175,22 @@ pipeline {
                 }
             }
         }
+
+        // stage('Trivy Security Scan') {
+        //     steps {
+        //         sh 'mkdir -p reports/trivy'
+        //         sh 'chmod -R 755 reports/trivy'
+        //         sh 'pwd'
+        //         sh 'echo $WORKSPACE'
+        //         sh """
+        //             docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v \${WORKSPACE}/reports/trivy:/reports/trivy aquasec/trivy:latest image \\
+        //                 --severity HIGH,CRITICAL \\
+        //                 --output /reports/trivy/trivy-scan-report-\${env.BUILD_NUMBER}.json \\
+        //                 \${IMAGE_REPO_NAME}:\${IMAGE_TAG}
+        //         """
+        //         archiveArtifacts artifacts: 'reports/trivy/trivy-scan-report-${env.BUILD_NUMBER}.json'
+        //     }
+        // }
 
         stage('Pushing to ECR') {
             steps {
