@@ -1,12 +1,18 @@
 pipeline {
     agent any
 
+    /*
+        An error occurred (RepositoryNotFoundException) when calling the DescribeRepositories operation:
+        The repository with name 'main/lowcostchillguymain' does not exist in the registry with id '277707137172'
+        => aws configure에서 region 설정
+    */
     environment {
         AWS_PROFILE = 'jenkins_profile'
         AWS_DEFAULT_REGION = "ap-northeast-2"
         GITHUB_REPO = 'https://github.com/low-cost-chill-guy/cgv-was.git'
         ENV = "${env.BRANCH_NAME == 'main' ? 'prod' : env.BRANCH_NAME}"
         IMAGE_REPO_NAME = "${env.BRANCH_NAME}/lowcostchillguy${env.BRANCH_NAME}"
+        
         IMAGE_TAG = "${env.BUILD_NUMBER}"
         REPOSITORY_URI = sh(
             script: "aws ecr describe-repositories --repository-names ${IMAGE_REPO_NAME} --query 'repositories[0].repositoryUri' --output text --profile ${AWS_PROFILE}",
