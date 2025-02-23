@@ -3,10 +3,10 @@ pipeline {
 
     environment {
         AWS_PROFILE = 'jenkins_profile'
-        AWS_DEFAULT_REGION = "ap-northeast-2"
+        AWS_DEFAULT_REGION = "us-west-1"
         GITHUB_REPO = 'https://github.com/low-cost-chill-guy/cgv-was.git'
         ENV = "${env.BRANCH_NAME == 'main' ? 'prod' : env.BRANCH_NAME}"
-        IMAGE_REPO_NAME = "chillguy/wastest"
+        IMAGE_REPO_NAME = "dr/chillguydr"
         IMAGE_TAG = "${env.BUILD_NUMBER}"
         REPOSITORY_URI = sh(
             script: "aws ecr describe-repositories --repository-names ${IMAGE_REPO_NAME} --query 'repositories[0].repositoryUri' --output text --profile ${AWS_PROFILE}",
@@ -100,24 +100,24 @@ pipeline {
             }
         }
 
-        // stage('Dependency Check') {
-        //     steps {
-        //         withCredentials([string(credentialsId: 'nvd-api-key', variable: 'NVD_API_KEY')]) {
-        //             sh 'mkdir -p dependency-check-reports'
+        stage('Dependency Check') {
+            steps {
+                withCredentials([string(credentialsId: 'nvd-api-key', variable: 'NVD_API_KEY')]) {
+                    sh 'mkdir -p dependency-check-reports'
 
-        //             dependencyCheck additionalArguments: """
-        //                 --scan ./
-        //                 --format "HTML"
-        //                 --format "XML"
-        //                 --out ./dependency-check-reports
-        //                 --data /var/jenkins_home/dependency-check-data
-        //                 --nvdApiKey ${NVD_API_KEY}
-        //             """, odcInstallation: 'Dependency-Check'
+                    dependencyCheck additionalArguments: """
+                        --scan ./
+                        --format "HTML"
+                        --format "XML"
+                        --out ./dependency-check-reports
+                        --data /var/jenkins_home/dependency-check-data
+                        --nvdApiKey ${NVD_API_KEY}
+                    """, odcInstallation: 'Dependency-Check'
 
-        //             dependencyCheckPublisher pattern: 'dependency-check-reports/dependency-check-report.xml'
-        //         }
-        //     }
-        // }
+                    dependencyCheckPublisher pattern: 'dependency-check-reports/dependency-check-report.xml'
+                }
+            }
+        }
 
         stage('Build & Test') {
             steps {
@@ -126,18 +126,18 @@ pipeline {
             }
         }
 
-        // stage('SonarQube Analysis') {
-        //     steps {
-        //         withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
-        //             sh """
-        //                 ./gradlew sonar \
-        //                     -Dsonar.projectKey=jenkinssonaqube \
-        //                     -Dsonar.host.url=http://khp-sonarqube-1:9000 \
-        //                     -Dsonar.login=${SONAR_TOKEN}
-        //             """
-        //         }
-        //     }
-        // }
+        stage('SonarQube Analysis') {
+            steps {
+                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                    sh """
+                        ./gradlew sonar \
+                            -Dsonar.projectKey=jenkinssonaqube \
+                            -Dsonar.host.url=http://khp-sonarqube-1:9000 \
+                            -Dsonar.login=${SONAR_TOKEN}
+                    """
+                }
+            }
+        }
 
         stage('Building image') {
             steps {
