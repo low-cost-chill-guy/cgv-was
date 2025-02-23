@@ -1,7 +1,7 @@
 package com.cloudwave.lowcostchillguy.user.service;
 
 import com.cloudwave.lowcostchillguy.ticket.domain.Ticket;
-import com.cloudwave.lowcostchillguy.ticket.dto.TicketResponseDTO;
+import com.cloudwave.lowcostchillguy.ticket.dto.UserTicketResponseDTO;
 import com.cloudwave.lowcostchillguy.ticket.repository.TicketRepository;
 import com.cloudwave.lowcostchillguy.user.domain.Users;
 import com.cloudwave.lowcostchillguy.user.dto.LoginRequestDTO;
@@ -16,13 +16,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@RestController // RestController 추가
+@RestController
 @RequestMapping("/api/users") // 공통 url 추가
 @RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository; // UserRepository 추가
-    private final TicketRepository ticketRepository; // TicketRepository 추가
 
 
     @PostMapping("/login")
@@ -47,26 +46,5 @@ public class UserService {
         return ResponseEntity.ok("회원가입 성공"); // LoginResponseDTO 추가
     }
 
-
-    //홈 화면 조회 API + 유저 티켓 내역 조회
-    @GetMapping("/")
-    public ResponseEntity<?> getHome(Long userId) { // @RequestHeader 추가, 토큰으로 사용자 인증
-        // 1. 토큰 검증 및 유저 정보 추출 (verifyJwtToken() 메서드 구현 필요)
-        Optional<Users> user = userRepository.findById(userId);
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // 인증 실패
-        }
-
-        // 2. 유저 ID로 티켓 목록 조회
-        List<Ticket> tickets = ticketRepository.findByUser(user);
-
-        // 3. TicketResponseDTO로 변환
-        List<TicketResponseDTO> ticketResponseDTOs = tickets.stream()
-                .map(TicketResponseDTO::new)
-                .collect(Collectors.toList());
-
-        // 4. 티켓 목록과 함께 성공 응답 반환
-        return ResponseEntity.ok(ticketResponseDTOs);
-    }
 
 }

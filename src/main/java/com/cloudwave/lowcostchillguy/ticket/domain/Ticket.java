@@ -18,10 +18,9 @@ import java.util.UUID;
 public class Ticket {
 
     @Id
-    @GeneratedValue(generator = "UUID")
-    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
-    @Column(columnDefinition = "BINARY(16)")
-    private UUID ticketId;  // UUID 형식의 티켓 번호
+    @Column(columnDefinition = "BINARY(16)", updatable = false, nullable = false)
+    private UUID ticketId = UUID.randomUUID();
+
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

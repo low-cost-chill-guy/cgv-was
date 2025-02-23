@@ -1,32 +1,34 @@
-//package com.cloudwave.lowcostchillguy.ad.domain;
-//
-//
-//import jakarta.persistence.Column;
-//import jakarta.persistence.GeneratedValue;
-//import jakarta.persistence.Id;
-//import lombok.AccessLevel;
-//import lombok.Getter;
-//import lombok.NoArgsConstructor;
-//
-//
-//
-//import java.time.LocalDateTime;
-//import java.util.UUID;
-//
-//@Getter
-//@NoArgsConstructor(access = AccessLevel.PROTECTED)
-//public class Ad {
-//    @Id
-//    @GeneratedValue(generator = "UUID")
-//    @Column(name = "id", updatable = false, nullable = false)
-//    private UUID id;
-//
-//    @Column(unique = true)
-//    private String movieTitle;
-//
-//    @Column
-//    private LocalDateTime movieStartTime;
-//
-//    @Column
-//    private String place;
-//}
+package com.cloudwave.lowcostchillguy.ad.domain;
+
+import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+import java.util.UUID;
+
+@Data
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Entity
+public class Ad {
+   @Id
+   @GeneratedValue(strategy = GenerationType.IDENTITY)
+   private Long id;
+   @Column
+   private Long time;
+
+   @Column
+   private String place;
+
+   @Column
+   private String adUrl;
+
+
+
+   public Ad(Long time, String place, String adUrl) {
+      this.time = time;
+      this.place = place;
+      this.adUrl = adUrl;
+   }
+}

@@ -5,23 +5,43 @@ import com.cloudwave.lowcostchillguy.ticket.domain.TicketStatus;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 @Getter
 public class TicketResponseDTO {
-    private UUID ticketId;
-    private String movieTitle;
-    private LocalDateTime movieStartTime;
-    private String theater;
-    private String seat;
-    private TicketStatus status;
+	private String ticketNumber;  // ticketNumber
+	private String movieTitle;
+	private String date;
+	private String time;
+	private String theater;
+	private String seat;
+	private TicketStatus status;
 
-    public TicketResponseDTO(Ticket ticket) {
-        this.ticketId = ticket.getTicketId();
-        this.movieTitle = ticket.getMovie().getMovieTitle();
-        this.movieStartTime = ticket.getMovieStartTime();
-        this.theater = ticket.getTheater();
-        this.seat = ticket.getSeat();
-        this.status = ticket.getStatus();
-    }
+	public TicketResponseDTO(Ticket ticket) {
+		this.ticketNumber = generateTicketNumber(ticket.getTicketId(), ticket.getMovieStartTime());
+		this.movieTitle = ticket.getMovie().getMovieTitle();
+		this.date = formatDate(ticket.getMovieStartTime());
+		this.time = formatTime(ticket.getMovieStartTime());
+		this.theater = ticket.getTheater();
+		this.seat = ticket.getSeat();
+		this.status = ticket.getStatus();
+	}
+
+
+	private String generateTicketNumber(UUID ticketId, LocalDateTime movieStartTime) {
+		String formattedDate = movieStartTime.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+		int ticketNumberSuffix = ticketId.hashCode();
+		return "TICKET-" + formattedDate + Math.abs(ticketNumberSuffix) % 100;
+	}
+
+
+	private String formatDate(LocalDateTime movieStartTime) {
+		return movieStartTime.format(DateTimeFormatter.ofPattern("yyyy.MM.dd"));
+	}
+
+
+	private String formatTime(LocalDateTime movieStartTime) {
+		return movieStartTime.format(DateTimeFormatter.ofPattern("HH:mm"));
+	}
 }
