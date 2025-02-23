@@ -45,6 +45,7 @@ dependencies {
 	implementation 'io.micrometer:micrometer-registry-prometheus'
 
 }
+// 소나큐브 설정 추가
 sonarqube {
     properties {
         property "sonar.sourceEncoding", "UTF-8"
