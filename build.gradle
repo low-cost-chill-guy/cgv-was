@@ -20,6 +20,7 @@ configurations {
 	}
 }
 
+
 repositories {
 	mavenCentral()
 }
@@ -38,9 +39,14 @@ dependencies {
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'com.h2database:h2'
-	
-	implementation 'com.amazonaws:aws-java-sdk-lambda:1.12.261'
-	implementation 'com.google.code.gson:gson:2.8.8'
+
+	implementation 'com.amazonaws:aws-java-sdk-lambda:1.12.608'
+	implementation 'com.google.code.gson:gson:2.8.9'
+
+	// 보안 검사로 인한 버전 업그레이드드
+	// implementation 'com.amazonaws:aws-java-sdk-lambda:1.12.261'
+	// implementation 'com.google.code.gson:gson:2.8.8'
+
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'io.micrometer:micrometer-registry-prometheus'
 
