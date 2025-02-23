@@ -75,6 +75,8 @@ pipeline {
                     userRemoteConfigs: [[url: "${GITHUB_REPO}"]])
             }
         }
+
+        // local file => secret file change
         stage('Prepare local File') {
             steps {
                 script {
