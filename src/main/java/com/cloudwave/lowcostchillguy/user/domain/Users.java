@@ -1,9 +1,13 @@
 package com.cloudwave.lowcostchillguy.user.domain;
 
+import com.cloudwave.lowcostchillguy.movie.domain.Movie;
+import com.cloudwave.lowcostchillguy.ticket.domain.TicketStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.UUID;
 
 @Data
 @Entity
@@ -22,4 +26,10 @@ public class Users {
 
     @Column
     private String name;
+
+    public Users(String email,String password , String name) {
+        this.email = email;
+        this.password = password;
+        this.name = name;
+    }
 }

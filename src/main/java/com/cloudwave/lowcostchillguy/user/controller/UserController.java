@@ -7,7 +7,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 
 public class UserController {
-    //홈 화면 조회 API
+
+    @GetMapping("/hello")
+    public String hello(){
+        return "hello";
+    }
+//    //홈 화면 조회 API
     @GetMapping("/")
     public ResponseEntity<Void> getHome() {
         return ResponseEntity.ok().build();
