@@ -1,7 +1,7 @@
 pipeline {
     agent any
 
-    // us-west-1 dr용 이미지 푸쉬
+    // us-west-1 dr용 이미지 푸쉬 3
     environment {
         AWS_PROFILE = 'jenkins_profile'
         AWS_DEFAULT_REGION = "us-west-1"
