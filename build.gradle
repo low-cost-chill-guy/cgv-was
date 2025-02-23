@@ -40,10 +40,8 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'com.h2database:h2'
 
-	implementation 'com.amazonaws:aws-java-sdk-lambda:1.12.608'
-	implementation 'com.google.code.gson:gson:2.8.9'
 
-	// 보안 검사로 인한 버전 업그레이드드
+	// 보안 검사 통과하지 못한 의존성 삭제(안 쓰는 것으로 확인)
 	// implementation 'com.amazonaws:aws-java-sdk-lambda:1.12.261'
 	// implementation 'com.google.code.gson:gson:2.8.8'
 
@@ -51,6 +49,7 @@ dependencies {
 	implementation 'io.micrometer:micrometer-registry-prometheus'
 
 }
+
 // 소나큐브 설정 추가
 sonarqube {
     properties {
