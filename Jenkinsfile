@@ -6,6 +6,7 @@ pipeline {
         The repository with name 'main/lowcostchillguymain' does not exist in the registry with id '277707137172'
         => aws configure에서 region 설정
     */
+    // dr용
     environment {
         AWS_PROFILE = 'jenkins_profile'
         // AWS_DEFAULT_REGION = "ap-northeast-2"
