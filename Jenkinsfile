@@ -20,8 +20,7 @@ pipeline {
             script: "aws ecr describe-repositories --repository-names ${IMAGE_REPO_NAME} --query 'repositories[0].repositoryUri' --output text --profile ${AWS_PROFILE}",
             returnStdout: true
         ).trim()
-        // LOC_FILE = credentials('application-local-yaml')
-        LOC_FILE = credentials('dr-application-local-yaml')
+        LOC_FILE = credentials('application-local-yaml')
         SONAR_TOKEN = credentials('sonar-token')
     }
 
@@ -83,7 +82,7 @@ pipeline {
         stage('Prepare local File') {
             steps {
                 script {
-                    withCredentials([file(credentialsId: 'application-local-yaml', variable: 'LOC_FILE')]) {
+                    withCredentials([file(credentialsId: 'dr-application-local-yaml', variable: 'LOC_FILE')]) {
                         sh """
                             mkdir -p src/main/resources
                             chmod -R 755 src/main/resources
