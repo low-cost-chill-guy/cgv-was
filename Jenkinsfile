@@ -130,7 +130,7 @@ pipeline {
         }
         //--data /var/lib/jenkins/dependency-check-data
 
-
+        // jdk 17 설치
         stage('Build & Test') {
             steps {
                 sh 'chmod +x ./gradlew'
