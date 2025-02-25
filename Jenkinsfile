@@ -144,7 +144,7 @@ pipeline {
                     sh """
                         ./gradlew sonar \
                             -Dsonar.projectKey=jenkinssonaqube \
-                            -Dsonar.host.url=http://ec2-user-sonarqube-1:9000 \
+                            -Dsonar.host.url=http://localhost:9000 \
                             -Dsonar.login=${SONAR_TOKEN}
                     """
                 }
