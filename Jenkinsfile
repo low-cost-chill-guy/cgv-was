@@ -122,7 +122,6 @@ pipeline {
                         --format "HTML"
                         --format "XML"
                         --out ./dependency-check-reports
-                        --data /var/lib/jenkins/dependency-check-data
                         --nvdApiKey ${NVD_API_KEY}
                     """, odcInstallation: 'Dependency-Check'
 
@@ -130,7 +129,9 @@ pipeline {
                 }
             }
         }
+        //--data /var/lib/jenkins/dependency-check-data
 
+        
         stage('Build & Test') {
             steps {
                 sh 'chmod +x ./gradlew'
