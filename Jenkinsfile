@@ -9,19 +9,19 @@ pipeline {
     // dr용
     environment {
         AWS_PROFILE = 'jenkins_profile'
-        // AWS_DEFAULT_REGION = "ap-northeast-2"
-        AWS_DEFAULT_REGION = "us-west-1"
+        AWS_DEFAULT_REGION = "ap-northeast-2"
+        // AWS_DEFAULT_REGION = "us-west-1"
         GITHUB_REPO = 'https://github.com/low-cost-chill-guy/cgv-was.git'
         ENV = "${env.BRANCH_NAME == 'main' ? 'prod' : env.BRANCH_NAME}"
-        // IMAGE_REPO_NAME = "${env.BRANCH_NAME}/lowcostchillguy${env.BRANCH_NAME}"
-        IMAGE_REPO_NAME = "dr/chillguydr"
+        IMAGE_REPO_NAME = "${env.BRANCH_NAME}/lowcostchillguy${env.BRANCH_NAME}"
+        // IMAGE_REPO_NAME = "dr/chillguydr"
         IMAGE_TAG = "${env.BUILD_NUMBER}"
         REPOSITORY_URI = sh(
             script: "aws ecr describe-repositories --repository-names ${IMAGE_REPO_NAME} --query 'repositories[0].repositoryUri' --output text --profile ${AWS_PROFILE}",
             returnStdout: true
         ).trim()
-        // LOC_FILE = credentials('application-local-yaml')
-        LOC_FILE = credentials('dr-application-local.yaml')
+        LOC_FILE = credentials('application-local-yaml')
+        // LOC_FILE = credentials('dr-application-local.yaml')
         SONAR_TOKEN = credentials('sonar-token')
     }
 
@@ -121,7 +121,7 @@ pipeline {
                         --format "HTML"
                         --format "XML"
                         --out ./dependency-check-reports
-                        --data /var/jenkins_home/dependency-check-data
+                        --data /var/lib/jenkins/dependency-check-data
                         --nvdApiKey ${NVD_API_KEY}
                     """, odcInstallation: 'Dependency-Check'
 
