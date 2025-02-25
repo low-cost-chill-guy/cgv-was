@@ -151,6 +151,7 @@ pipeline {
             }
         }
 
+        // 여기서 오류
         stage('Building image') {
             steps {
                 script {
