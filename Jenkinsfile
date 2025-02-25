@@ -131,7 +131,7 @@ pipeline {
         }
         //--data /var/lib/jenkins/dependency-check-data
 
-        
+
         stage('Build & Test') {
             steps {
                 sh 'chmod +x ./gradlew'
