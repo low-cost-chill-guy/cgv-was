@@ -83,7 +83,7 @@ pipeline {
         stage('Prepare local File') {
             steps {
                 script {
-                    withCredentials([file(credentialsId: 'dr-application-local.yaml', variable: 'LOC_FILE')]) {
+                    withCredentials([file(credentialsId: 'application-local.yaml', variable: 'LOC_FILE')]) {
                         sh """
                             mkdir -p src/main/resources
                             chmod -R 755 src/main/resources
